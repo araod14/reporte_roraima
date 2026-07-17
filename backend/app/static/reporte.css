@@ -1,0 +1,102 @@
+/* Reporte optimizado para leerse en pantalla de teléfono (WhatsApp). */
+
+@page {
+  size: A4 portrait;
+  margin: 1.4cm 1.2cm 3cm 1.2cm;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: #1a1a1a;
+  font-size: 12pt;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.lbl {
+  display: block;
+  font-size: 8.5pt;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #6b7280;
+  font-weight: 700;
+}
+
+/* -------- Cabecera -------- */
+.doc-header { border-bottom: 3px solid #0b5cad; padding-bottom: 10px; margin-bottom: 14px; }
+.doc-header .title { font-size: 19pt; font-weight: 800; color: #0b5cad; }
+.doc-header .subtitle { font-size: 11pt; color: #6b7280; margin-bottom: 8px; }
+.meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px 18px; font-size: 11pt;
+}
+
+/* -------- Resumen ejecutivo -------- */
+.resumen { border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
+.resumen.ok { background: #e7f6ec; border: 1px solid #58b070; }
+.resumen.alerta { background: #fdecec; border: 1px solid #e0736f; }
+.resumen-head { font-size: 14pt; font-weight: 800; margin-bottom: 4px; }
+.resumen.ok .resumen-head { color: #1f7a3f; }
+.resumen.alerta .resumen-head { color: #b3261e; }
+.resumen-sub { color: #4b5563; }
+.resumen-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.resumen-list li { padding: 6px 0; border-top: 1px solid rgba(0,0,0,.08); }
+.rl-loc { color: #6b7280; font-size: 10pt; margin-right: 6px; }
+.rl-name { font-weight: 700; }
+.rl-com { color: #4b5563; font-size: 10.5pt; margin-top: 2px; }
+
+.obs-generales {
+  background: #f3f4f6; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px;
+}
+
+/* -------- Tarjetas por sistema -------- */
+.card {
+  border: 1px solid #d7dbe0; border-radius: 10px; margin-bottom: 12px;
+  overflow: hidden; break-inside: avoid;
+}
+.card-head {
+  background: #0b5cad; color: #fff; font-weight: 700; font-size: 12pt;
+  padding: 8px 12px;
+}
+
+.row { padding: 8px 12px; border-top: 1px solid #eceef1; }
+.row:first-of-type { border-top: none; }
+.row-main { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.row-name { font-weight: 600; }
+.valores { display: flex; gap: 20px; margin-top: 4px; font-size: 10.5pt; }
+.valores .lbl { display: inline; margin-right: 4px; }
+.com { color: #4b5563; font-size: 10.5pt; margin-top: 3px; }
+
+/* -------- Badges -------- */
+.badge {
+  display: inline-block; padding: 2px 10px; border-radius: 999px;
+  font-size: 9.5pt; font-weight: 800; white-space: nowrap; color: #fff;
+}
+.badge.ok { background: #2e9e54; }
+.badge.malo { background: #d33a34; }
+.badge.obs { background: #e0a020; color: #3a2b00; }
+.badge.none { background: #9ca3af; }
+
+/* -------- UPS (fuente/batería/fan) -------- */
+.ups-item { padding: 8px 12px; border-top: 1px solid #eceef1; break-inside: avoid; }
+.ups-item:first-of-type { border-top: none; }
+.ups-name { font-weight: 600; margin-bottom: 5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip {
+  font-size: 9pt; font-weight: 700; padding: 3px 8px; border-radius: 6px;
+  border: 1px solid transparent;
+}
+.chip.on { background: #2e9e54; color: #fff; }
+.chip.off { background: #f0f1f3; color: #9ca3af; border-color: #dcdfe3; }
+
+/* -------- Pie fijo (repetido en cada página, dentro del margen inferior) -------- */
+.footer {
+  position: fixed; bottom: 0.5cm; left: 1.2cm; right: 1.2cm;
+  border-top: 1.5px solid #d7dbe0; padding-top: 6px;
+  display: flex; justify-content: space-between; align-items: flex-end; gap: 12px;
+  font-size: 8.5pt; color: #4b5563;
+}
+.footer-left div { margin-bottom: 2px; }
+.footer .hash { font-family: "Courier New", monospace; color: #0b5cad; font-weight: 700; }
+.footer-qr img { width: 1.9cm; height: 1.9cm; display: block; }

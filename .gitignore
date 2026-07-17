@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.venv312/
+_reports/
+backend/_reports/
+*.log
+
+# Node / PWA
+node_modules/
+app/dist/
+app/dev-dist/
+.playwright-mcp/
+
+# Entornos y secretos
+.env
+deploy/.env
+
+# Editor
+.DS_Store
+*.swp

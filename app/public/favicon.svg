@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0b5cad"/>
+  <path d="M150 260l70 70 145-160" fill="none" stroke="#fff" stroke-width="42"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="256" y="430" font-family="Arial, sans-serif" font-size="90" font-weight="bold"
+        fill="#ffffff" text-anchor="middle">ISH</text>
+</svg>

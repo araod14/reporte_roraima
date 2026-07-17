@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Verificación Periódica ISH y SDC — {{ inspeccion.fecha }}</title>
+<style>{{ css_content }}</style>
+</head>
+<body>
+
+<div class="doc-header">
+  <div class="title">Verificación Periódica de ISH y SDC</div>
+  <div class="subtitle">PDVSA — Reporte de inspección · v{{ version }}</div>
+  <div class="meta-grid">
+    <div><span class="lbl">Fecha</span> {{ inspeccion.fecha }}</div>
+    <div><span class="lbl">Inspeccionado por</span> {{ inspeccion.inspeccionado_por_nombre or "—" }}</div>
+    <div><span class="lbl">Verificado por</span> {{ inspeccion.verificado_por_nombre or "—" }}</div>
+    <div><span class="lbl">Aprobado por</span> {{ inspeccion.aprobado_por_nombre or "—" }}</div>
+  </div>
+</div>
+
+{# ---------- Resumen ejecutivo ---------- #}
+<div class="resumen {{ 'ok' if n_problemas == 0 else 'alerta' }}">
+  {% if n_problemas == 0 %}
+    <div class="resumen-head">✓ Sin elementos con problema</div>
+    <div class="resumen-sub">Todos los elementos capturados están en estado OK.</div>
+  {% else %}
+    <div class="resumen-head">⚠ {{ n_problemas }} elemento{{ 's' if n_problemas != 1 }} requiere{{ 'n' if n_problemas != 1 }} atención</div>
+    <ul class="resumen-list">
+      {% for item in resumen %}
+      <li>
+        <span class="badge {{ 'malo' if item.estado == 'MALO' else 'obs' }}">{{ item.estado }}</span>
+        <span class="rl-loc">{{ item.instalacion }} / {{ item.sistema }}</span>
+        <span class="rl-name">{{ item.nombre }}</span>
+        {% if item.comentario %}<div class="rl-com">{{ item.comentario }}</div>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+{% if inspeccion.observaciones_generales %}
+<div class="obs-generales">
+  <div class="lbl">Observaciones generales</div>
+  <div>{{ inspeccion.observaciones_generales }}</div>
+</div>
+{% endif %}
+
+{# ---------- Detalle por sistema ---------- #}
+{% for g in grupos %}
+<div class="card">
+  <div class="card-head">{{ g.instalacion }} · {{ g.sistema }}</div>
+
+  {% if g.tipo == 'UPS' %}
+    {% for e in g.elementos %}
+    <div class="ups-item">
+      <div class="ups-name">{{ e.nombre }}</div>
+      <div class="chips">
+        {% set pairs = 4 if e.ups_dobles else 2 %}
+        {% for i in range(1, pairs + 1) %}
+          <span class="chip {{ 'on' if e['fuente_' ~ i] else 'off' }}">Fuente {{ i }}</span>
+          <span class="chip {{ 'on' if e['bateria_' ~ i] else 'off' }}">Batería {{ i }}</span>
+          <span class="chip {{ 'on' if e['fan_' ~ i] else 'off' }}">Fan {{ i }}</span>
+        {% endfor %}
+      </div>
+      {% if e.comentario %}<div class="com">{{ e.comentario }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    {% for e in g.elementos %}
+    <div class="row">
+      <div class="row-main">
+        <span class="row-name">{{ e.nombre }}</span>
+        <span class="badge {{ {'OK':'ok','MALO':'malo','OBSERVACION':'obs'}.get(e.estado, 'none') }}">
+          {{ e.estado or '—' }}
+        </span>
+      </div>
+      {% if e.tipo == 'CCC' and (e.valor_a or e.valor_b) %}
+      <div class="valores">
+        <span><span class="lbl">A</span> {{ e.valor_a or '—' }}</span>
+        <span><span class="lbl">B</span> {{ e.valor_b or '—' }}</span>
+      </div>
+      {% endif %}
+      {% if e.comentario %}<div class="com">{{ e.comentario }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endfor %}
+
+{# ---------- Pie fijo (se repite en cada página del PDF) ---------- #}
+<div class="footer">
+  <div class="footer-left">
+    <div>{{ inspeccion.fecha }} · v{{ version }} · generado por {{ generado_por }}</div>
+    <div>Insp: {{ inspeccion.inspeccionado_por_nombre or '—' }} · Verif: {{ inspeccion.verificado_por_nombre or '—' }} · Aprob: {{ inspeccion.aprobado_por_nombre or '—' }}</div>
+    <div class="hash">Hash: {{ hash_short }} · Verifica escaneando el QR →</div>
+  </div>
+  <div class="footer-qr">
+    <img src="{{ qr_uri }}" alt="QR verificación">
+  </div>
+</div>
+
+</body>
+</html>

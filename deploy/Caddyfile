@@ -1,0 +1,27 @@
+# Caddy obtiene y renueva el certificado TLS automáticamente para {$DOMAIN}.
+{$DOMAIN} {
+	encode gzip
+
+	# API REST
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# Página pública de verificación (QR)
+	handle /verificar/* {
+		reverse_proxy api:8000
+	}
+
+	# Reportes generados (PDF/HTML), servidos como estáticos desde el volumen
+	handle_path /reports/* {
+		root * /srv/reports
+		file_server
+	}
+
+	# PWA (SPA): todo lo demás sirve la app; fallback a index.html
+	handle {
+		root * /srv/pwa
+		try_files {path} /index.html
+		file_server
+	}
+}

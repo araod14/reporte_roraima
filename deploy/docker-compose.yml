@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-roraima}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-roraima}
+      POSTGRES_DB: ${POSTGRES_DB:-roraima}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-roraima}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-roraima}:${POSTGRES_PASSWORD:-roraima}@db:5432/${POSTGRES_DB:-roraima}
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      BASE_URL: ${BASE_URL:?define BASE_URL en .env}
+      REPORTS_DIR: /var/reports
+      SEED_PASSWORD: ${SEED_PASSWORD:-roraima2026}
+    volumes:
+      - reports:/var/reports
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?define DOMAIN en .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../app/dist:/srv/pwa:ro          # PWA compilada (flutter/vite build)
+      - reports:/srv/reports:ro          # PDF/HTML servidos como estáticos
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  reports:
+  caddy_data:
+  caddy_config:

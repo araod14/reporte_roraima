@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.venv312/
+_reports/
+.env
+.pytest_cache/
+README.md
+alembic/versions/__pycache__/

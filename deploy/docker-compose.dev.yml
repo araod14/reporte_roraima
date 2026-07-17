@@ -1,0 +1,37 @@
+# Entorno de desarrollo/prueba local: solo db + api, api expuesta en localhost:8000.
+# Uso:  docker compose -f docker-compose.dev.yml up --build
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: roraima
+      POSTGRES_PASSWORD: roraima
+      POSTGRES_DB: roraima
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roraima"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://roraima:roraima@db:5432/roraima
+      JWT_SECRET: dev-secret-no-usar-en-produccion
+      BASE_URL: http://localhost:8010
+      REPORTS_DIR: /var/reports
+      SEED_PASSWORD: roraima2026
+    ports:
+      - "8010:8000"
+    volumes:
+      - reports_dev:/var/reports
+
+volumes:
+  pgdata_dev:
+  reports_dev:
