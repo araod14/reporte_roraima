@@ -12,6 +12,9 @@ hash and a QR code linking to a public verification page.
 Three parts: **`backend/`** (FastAPI API + report generation), **`app/`** (installable
 PWA, the field app), **`deploy/`** (docker-compose + Caddy for the VPS).
 
+Detailed human docs live in `README.md` (overview), `deploy/README.md` (VPS deploy +
+backups), `backend/README.md`, and `app/README.md`. Default git branch is `main`.
+
 ## Commands
 
 ### Backend (local, no Docker — fastest here)
@@ -49,7 +52,17 @@ npm run dev        # Vite dev server (proxies /api -> localhost:8010); lands on 
 npm run build      # tsc -b && vite build -> app/dist  (Caddy serves this in deploy/)
 ```
 There are no automated tests; verification is done by driving the running API (curl) and
-the PWA (browser).
+the PWA (browser). Backend smoke test against a running API on `:8010`:
+
+```bash
+API=http://localhost:8010
+TOKEN=$(curl -s -X POST $API/api/auth/login \
+  -d "username=darao&password=roraima2026" | python3 -c "import sys,json;print(json.load(sys.stdin)['access_token'])")
+curl -s $API/api/catalogo -H "Authorization: Bearer $TOKEN" | python3 -c "import sys,json;print(len(json.load(sys.stdin)),'elementos')"  # -> 95
+# create/sync an inspection (idempotent by UUID), then:
+curl -s -X POST $API/api/inspecciones/<UUID>/finalizar -H "Authorization: Bearer $TOKEN"  # -> pdf_sha256 == sha256sum of the served /reports/<UUID>/v1.pdf
+```
+Seed users: `darao`, `ldavila`, `smartinez`, `mlanz`, `frojas`, `admin` (password = `SEED_PASSWORD`, default `roraima2026`).
 
 ### Full VPS deploy
 `cd deploy && cp .env.example .env` (set DOMAIN/BASE_URL/JWT_SECRET/passwords) → build the
