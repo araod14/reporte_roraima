@@ -47,6 +47,24 @@ export async function fetchCatalogo(): Promise<any[]> {
   return handle(res);
 }
 
+// Lista de todas las inspecciones del servidor (de todos los usuarios).
+export async function fetchInspecciones(): Promise<any[]> {
+  const res = await fetch(`${BASE}/api/inspecciones`, { headers: await authHeaders() });
+  return handle(res);
+}
+
+// Detalle completo de una inspección (incluye registros).
+export async function fetchInspeccion(id: string): Promise<any> {
+  const res = await fetch(`${BASE}/api/inspecciones/${id}`, { headers: await authHeaders() });
+  return handle(res);
+}
+
+// Versiones de reporte de una inspección finalizada.
+export async function fetchReportes(id: string): Promise<any[]> {
+  const res = await fetch(`${BASE}/api/reportes/${id}`, { headers: await authHeaders() });
+  return handle(res);
+}
+
 export async function syncBatch(inspecciones: any[]): Promise<any> {
   const res = await fetch(`${BASE}/api/sync/batch`, {
     method: "POST",

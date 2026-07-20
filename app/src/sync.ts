@@ -1,7 +1,14 @@
-import { syncBatch, fetchCatalogo, ApiError } from "./api";
+import {
+  syncBatch,
+  fetchCatalogo,
+  fetchInspecciones,
+  fetchInspeccion,
+  fetchReportes,
+  ApiError,
+} from "./api";
 import { db, setMeta } from "./db";
 import { CATALOGO_FALLBACK } from "./catalogo";
-import type { Inspeccion } from "./types";
+import type { Inspeccion, Registro } from "./types";
 
 // Convierte una inspección local al formato que espera el backend.
 export function toPayload(insp: Inspeccion) {
@@ -62,6 +69,80 @@ export async function syncNow(): Promise<SyncResult> {
   }
 }
 
+// Baja las inspecciones del servidor (de todos los usuarios) y las fusiona en
+// IndexedDB. Nunca pisa ediciones locales aún sin subir (syncState === "pending").
+// Devuelve cuántas inspecciones locales cambiaron.
+export async function pullRemote(): Promise<number> {
+  if (!navigator.onLine) return 0;
+  let changed = 0;
+  const remotos = await fetchInspecciones();
+  for (const item of remotos) {
+    const local = await db.inspecciones.get(item.id);
+    // No sobreescribir cambios locales que todavía no se subieron.
+    if (local?.syncState === "pending") continue;
+    // Ya tenemos exactamente esta versión del servidor: nada que hacer.
+    if (local && local.server_updated_at === item.updated_at) continue;
+
+    const full = await fetchInspeccion(item.id);
+    const registros: Record<string, Registro> = {};
+    for (const r of full.registros ?? []) registros[r.catalogo_codigo] = r;
+
+    const insp: Inspeccion = {
+      id: full.id,
+      fecha: full.fecha,
+      inspeccionado_por_nombre: full.inspeccionado_por_nombre ?? "",
+      verificado_por_nombre: full.verificado_por_nombre ?? "",
+      aprobado_por_nombre: full.aprobado_por_nombre ?? "",
+      observaciones_generales: full.observaciones_generales ?? "",
+      estado: full.estado,
+      syncState: "synced",
+      client_updated_at: local?.client_updated_at ?? full.updated_at,
+      server_updated_at: item.updated_at,
+      created_by: full.created_by,
+      registros,
+      reporte: local?.reporte,
+    };
+
+    // Para finalizadas, traer la metadata del reporte (para ver/compartir el PDF).
+    if (full.estado === "FINALIZADA") {
+      try {
+        const reps = await fetchReportes(full.id);
+        if (reps.length > 0) {
+          const last = reps[reps.length - 1];
+          insp.reporte = {
+            version: last.version,
+            pdf_url: last.pdf_url,
+            html_url: last.html_url,
+            verificar_url: last.verificar_url,
+            pdf_hash_short: last.pdf_hash_short,
+            content_hash: last.content_hash,
+          };
+        }
+      } catch {
+        /* si falla, se muestra sin botón de compartir */
+      }
+    }
+
+    await db.inspecciones.put(insp);
+    changed++;
+  }
+  return changed;
+}
+
+// Sube pendientes y luego baja lo del servidor. Devuelve si hubo cambios locales.
+export async function syncAll(): Promise<SyncResult & { pulled: number }> {
+  const push = await syncNow();
+  let pulled = 0;
+  try {
+    pulled = await pullRemote();
+  } catch (e) {
+    if (!push.ok) return { ...push, pulled: 0 };
+    const msg = e instanceof ApiError ? e.message : "Error al descargar";
+    return { ok: false, synced: push.synced, message: msg, pulled: 0 };
+  }
+  return { ...push, pulled };
+}
+
 // Refresca el catálogo desde el backend; si falla, usa el empaquetado.
 export async function refreshCatalogo(): Promise<void> {
   try {
@@ -82,10 +163,11 @@ export async function refreshCatalogo(): Promise<void> {
 }
 
 // Arranca la sincronización automática (al recuperar conexión + intervalo).
+// Sube pendientes y baja lo de los demás usuarios.
 export function startAutoSync(onChange?: () => void): () => void {
   const run = async () => {
-    const r = await syncNow();
-    if (r.synced > 0) onChange?.();
+    const r = await syncAll();
+    if (r.synced > 0 || r.pulled > 0) onChange?.();
   };
   const onlineHandler = () => void run();
   window.addEventListener("online", onlineHandler);

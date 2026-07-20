@@ -48,6 +48,9 @@ export interface Inspeccion {
   registros: Record<string, Registro>; // por catalogo_codigo
   // Datos del último reporte generado (si finalizada)
   reporte?: ReporteMeta;
+  // Metadatos del servidor (presentes al bajar de otros usuarios)
+  server_updated_at?: string; // ISO — para detectar cambios remotos sin refetch
+  created_by?: string;
 }
 
 export interface ReporteMeta {

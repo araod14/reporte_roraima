@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 import { db, delMeta, getMeta } from "../db";
-import { startAutoSync, syncNow } from "../sync";
+import { startAutoSync, syncAll } from "../sync";
 import type { Inspeccion } from "../types";
 
 function useOnline() {
@@ -54,10 +54,15 @@ export function Lista() {
 
   async function handleSync() {
     setSyncing(true);
-    const r = await syncNow();
+    const r = await syncAll();
     setSyncing(false);
     await load();
-    setToast(r.ok ? `Sincronizado (${r.synced})` : `Error: ${r.message}`);
+    if (r.ok) {
+      const partes = [`↑ ${r.synced}`, `↓ ${r.pulled}`];
+      setToast(`Sincronizado (${partes.join("  ")})`);
+    } else {
+      setToast(`Error: ${r.message}`);
+    }
     setTimeout(() => setToast(""), 2500);
   }
 
