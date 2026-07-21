@@ -82,6 +82,26 @@ export async function finalizar(inspeccionId: string): Promise<any> {
   return handle(res);
 }
 
+// Descarga la vista visual (panel sinóptico) como blob: html interactivo o pdf.
+export async function fetchSlides(
+  inspeccionId: string,
+  formato: "html" | "pdf",
+): Promise<Blob> {
+  const res = await fetch(`${BASE}/api/inspecciones/${inspeccionId}/slides.${formato}`, {
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      detail = (await res.json()).detail ?? detail;
+    } catch {
+      /* ignore */
+    }
+    throw new ApiError(res.status, detail);
+  }
+  return res.blob();
+}
+
 export async function reabrir(inspeccionId: string): Promise<any> {
   const res = await fetch(`${BASE}/api/inspecciones/${inspeccionId}/reabrir`, {
     method: "POST",

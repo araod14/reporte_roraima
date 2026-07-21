@@ -1,0 +1,138 @@
+/* Panel sinóptico — 3 slides apaisadas (una por instalación).
+   En pantalla se navega una a la vez; al imprimir/PDF cada slide es una página.
+   Layout pensado para WeasyPrint: sin CSS grid (usa inline-block). */
+
+@page {
+  size: A4 landscape;
+  margin: 1cm;
+}
+
+* { box-sizing: border-box; }
+
+:root {
+  --ok: #2e9e54;
+  --malo: #d33a34;
+  --obs: #e0a020;
+  --sindato: #9ca3af;
+  --azul: #0b5cad;
+  --linea: #d7dbe0;
+  --fondo: #f4f6f8;
+}
+
+html, body {
+  margin: 0;
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  color: #1a1a1a;
+  background: var(--fondo);
+}
+
+/* -------- Slide -------- */
+.slide {
+  background: #fff;
+  padding: 2mm 1mm;
+}
+
+/* En pantalla: una slide a la vez. */
+@media screen {
+  body { padding: 12px; }
+  .slide { display: none; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,.12); margin: 0 auto 16px; max-width: 1180px; min-height: 80vh; }
+  .slide.active { display: block; }
+}
+
+/* En PDF/impresión: todas visibles, una por página. */
+@media print {
+  body { background: #fff; padding: 0; }
+  .slide { display: block; break-after: page; }
+  .slide:last-of-type { break-after: auto; }
+  .nav { display: none !important; }
+}
+
+/* -------- Cabecera de slide -------- */
+.slide-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  border-bottom: 3px solid var(--azul); padding-bottom: 6px; margin-bottom: 8px; gap: 12px;
+}
+.slide-head .inst { font-size: 21pt; font-weight: 800; color: var(--azul); line-height: 1; }
+.slide-head .sub { font-size: 9.5pt; color: #6b7280; margin-top: 2px; }
+.counts { white-space: nowrap; }
+.count {
+  display: inline-block;
+  font-size: 9.5pt; font-weight: 800; padding: 2px 9px; border-radius: 999px; color: #fff; margin-left: 5px;
+}
+.count.ok { background: var(--ok); }
+.count.malo { background: var(--malo); }
+.count.obs { background: var(--obs); color: #3a2b00; }
+.count.sindato { background: var(--sindato); }
+
+/* -------- Zonas por sistema (dos columnas: reduce la altura ~a la mitad) -------- */
+.zonas { column-count: 2; column-gap: 8px; }
+.zona {
+  border: 1px solid var(--linea); border-radius: 8px; overflow: hidden;
+  break-inside: avoid; margin: 0 0 7px; display: inline-block; width: 100%;
+}
+.zona-head {
+  background: var(--azul); color: #fff; font-weight: 700; font-size: 9.5pt;
+  padding: 2px 8px;
+}
+.tiles { padding: 5px 5px 1px; font-size: 0; }  /* font-size:0 elimina el espacio entre inline-blocks */
+
+@media screen and (max-width: 700px) {
+  .zonas { column-count: 1; }
+}
+
+/* -------- Tile de equipo -------- */
+.tile {
+  display: inline-block; vertical-align: top;
+  width: 118px; margin: 0 4px 4px 0;
+  border: 1px solid; border-radius: 6px; padding: 4px 6px;
+  break-inside: avoid;
+}
+.tile .nom { font-weight: 700; font-size: 8.4pt; line-height: 1.15; }
+.tile.ok { background: #eaf6ee; border-color: var(--ok); }
+.tile.malo { background: #fdeceb; border-color: var(--malo); }
+.tile.obs { background: #fdf5e3; border-color: var(--obs); }
+.tile.sindato { background: #f3f4f6; border-color: var(--sindato); color: #6b7280; }
+
+.tile .st {
+  display: inline-block; font-size: 7pt; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .03em; padding: 1px 6px; border-radius: 999px; color: #fff; margin-top: 3px;
+}
+.tile.ok .st { background: var(--ok); }
+.tile.malo .st { background: var(--malo); }
+.tile.obs .st { background: var(--obs); color: #3a2b00; }
+.tile.sindato .st { background: var(--sindato); }
+
+.tile .vals { font-size: 7.5pt; color: #374151; margin-top: 3px; }
+.tile .vals b { color: #111; }
+.tile .com { font-size: 7pt; color: #4b5563; margin-top: 3px; font-style: italic; }
+
+/* UPS sub-chips */
+.subchips { margin-top: 4px; }
+.subchip {
+  display: inline-block;
+  font-size: 6.5pt; font-weight: 700; padding: 1px 4px; border-radius: 4px;
+  border: 1px solid #dcdfe3; margin: 0 2px 2px 0;
+}
+.subchip.on { background: var(--ok); color: #fff; border-color: var(--ok); }
+.subchip.off { background: #fff; color: var(--malo); border-color: var(--malo); }
+
+/* -------- Pie -------- */
+.slide-foot {
+  border-top: 1px solid var(--linea); margin-top: 6px; padding-top: 5px;
+  font-size: 8pt; color: #6b7280;
+}
+.slide-foot .aviso { font-weight: 700; color: #9a6a00; float: right; }
+
+/* -------- Barra de navegación (solo pantalla) -------- */
+.nav {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px;
+  background: #111827; color: #fff; padding: 8px 14px; border-radius: 999px;
+  box-shadow: 0 3px 12px rgba(0,0,0,.3); z-index: 10;
+}
+.nav button {
+  background: #374151; color: #fff; border: none; border-radius: 999px;
+  width: 34px; height: 34px; font-size: 16px; cursor: pointer;
+}
+.nav button:disabled { opacity: .4; cursor: default; }
+.nav .pos { font-size: 10pt; font-weight: 700; min-width: 90px; text-align: center; }

@@ -5,6 +5,7 @@ import { db } from "../db";
 import { finalizar as apiFinalizar, reabrir as apiReabrir, ApiError } from "../api";
 import { syncNow } from "../sync";
 import { compartirPDF } from "../report";
+import { compartirSlides, verSlides } from "../slides";
 import type { CatalogoElemento, Estado, Inspeccion, Registro } from "../types";
 
 const HOY = () => new Date().toISOString().slice(0, 10);
@@ -154,6 +155,32 @@ export function Formulario() {
     showToast(msg);
   }
 
+  async function verPanel() {
+    if (!insp) return;
+    if (!navigator.onLine) return showToast("Necesitas conexión para ver el panel.");
+    setBusy(true);
+    try {
+      await verSlides(insp.id);
+    } catch (e) {
+      showToast(e instanceof ApiError ? e.message : "Error al abrir el panel");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function compartirPanel() {
+    if (!insp) return;
+    if (!navigator.onLine) return showToast("Necesitas conexión para compartir el panel.");
+    setBusy(true);
+    try {
+      showToast(await compartirSlides(insp.id, insp.fecha));
+    } catch (e) {
+      showToast(e instanceof ApiError ? e.message : "Error al compartir el panel");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   function showToast(m: string) {
     setToast(m);
     setTimeout(() => setToast(""), 2600);
@@ -251,6 +278,12 @@ export function Formulario() {
           <div className="btn-row">
             <button className="btn-green btn-block" onClick={compartir} disabled={busy}>
               Compartir PDF por WhatsApp
+            </button>
+            <button className="btn-block" onClick={verPanel} disabled={busy}>
+              Ver esquema visual
+            </button>
+            <button className="btn-block" onClick={compartirPanel} disabled={busy}>
+              Compartir esquema (PDF)
             </button>
             <button className="btn-block" onClick={reabrir} disabled={busy}>
               Reabrir para corregir (nueva versión)
