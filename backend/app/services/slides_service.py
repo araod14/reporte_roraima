@@ -13,7 +13,7 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 from sqlalchemy.orm import Session
 from weasyprint import HTML
 
-from app.models.catalogo import TIPO_CCC, TIPO_UPS, CatalogoElemento
+from app.models.catalogo import TIPO_UPS, CatalogoElemento
 from app.models.inspeccion import Inspeccion
 from app.services.report_service import (
     _INSTALACION_ORDER,

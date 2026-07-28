@@ -102,9 +102,42 @@ docker run --rm -v deploy_reports:/data -v "$PWD":/out alpine \
 
 ## Detrás de otro reverse proxy
 
-Si el VPS ya tiene su propio proxy (Nginx/Traefik/otro Caddy) terminando TLS, puedes
-quitar el servicio `caddy` de `docker-compose.yml`, exponer el puerto de `api` (8000) y
-apuntar tu proxy a `/api`, `/verificar` y `/reports`, sirviendo `app/dist` como estáticos.
+Si el VPS ya tiene su propio proxy (Nginx/Traefik/otro Caddy) terminando TLS, hay dos
+opciones:
+
+**A) Quitar Caddy por completo.** Elimina el servicio `caddy` de `docker-compose.yml`,
+expón el puerto de `api` (8000) y apunta tu proxy a `/api`, `/verificar` y `/reports`,
+sirviendo `app/dist` como estáticos.
+
+**B) Mantener Caddy detrás, en HTTP plano** (el enfoque usado en este VPS). El proxy del
+host termina el TLS y hace `proxy_pass` a este Caddy, que ya sabe servir la PWA, `/api`,
+`/verificar` y `/reports`. Se activa con **dos archivos locales** (no versionados, son
+específicos de cada host — recuérdalos al respaldar o migrar el servidor):
+
+| Archivo | Qué hace |
+|---------|----------|
+| `Caddyfile.proxied` | Caddyfile alterno que escucha en `:80` **sin pedir certificado** (`handle` para `/api`, `/verificar`, `/reports` y fallback SPA). |
+| `docker-compose.override.yml` | Override que publica Caddy solo en `127.0.0.1:8090:80` y monta `Caddyfile.proxied` en vez del `Caddyfile` normal. |
+
+Compose lee `docker-compose.override.yml` automáticamente, así que basta con:
+
+```bash
+docker compose up -d --build
+```
+
+Luego, en el proxy del host (ej. Nginx), apunta tu `server` con TLS a `http://127.0.0.1:8090`:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:8090;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+Con este enfoque, `DOMAIN` en `.env` deja de usarse para pedir TLS (lo hace el host), pero
+`BASE_URL` debe seguir siendo la URL pública `https://...` porque va en el QR del PDF.
 
 ## Desarrollo local
 
