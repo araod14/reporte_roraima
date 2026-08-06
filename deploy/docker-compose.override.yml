@@ -1,0 +1,12 @@
+# Override para este VPS: el host ya tiene nginx+certbot terminando TLS en 80/443.
+# Caddy corre detrás, en HTTP plano, escuchando solo en localhost:8090.
+services:
+  caddy:
+    ports: !override
+      - "127.0.0.1:8090:80"
+    volumes: !override
+      - ./Caddyfile.proxied:/etc/caddy/Caddyfile:ro
+      - ../app/dist:/srv/pwa:ro
+      - reports:/srv/reports:ro
+      - caddy_data:/data
+      - caddy_config:/config

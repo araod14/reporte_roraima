@@ -1,0 +1,28 @@
+# Modo "detrás de otro reverse proxy": el nginx del host termina el TLS y hace
+# proxy a este Caddy por HTTP plano. Aquí NO se pide certificado.
+:80 {
+	encode gzip
+
+	# API REST
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+
+	# Página pública de verificación (QR)
+	handle /verificar/* {
+		reverse_proxy api:8000
+	}
+
+	# Reportes generados (PDF/HTML), servidos como estáticos desde el volumen
+	handle_path /reports/* {
+		root * /srv/reports
+		file_server
+	}
+
+	# PWA (SPA): todo lo demás sirve la app; fallback a index.html
+	handle {
+		root * /srv/pwa
+		try_files {path} /index.html
+		file_server
+	}
+}
