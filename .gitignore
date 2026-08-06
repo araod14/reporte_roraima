@@ -12,6 +12,7 @@ backend/_reports/
 node_modules/
 app/dist/
 app/dev-dist/
+app/tsconfig.tsbuildinfo
 .playwright-mcp/
 
 # Entornos y secretos
