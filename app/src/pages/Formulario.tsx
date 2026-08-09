@@ -13,6 +13,18 @@ const AHORA = () => new Date().toISOString();
 
 const INSTALACIONES = ["SDC", "ISH-1", "ISH-2"];
 const SISTEMAS = ["LCN", "PCN", "MANT", "SSLL", "FSC", "AIT", "CCC", "UCN", "PLC"];
+const COMMENT_WORD_LIMIT = 20;
+
+function countWords(value: string): number {
+  return value.trim() ? value.trim().split(/\s+/).length : 0;
+}
+
+function limitWords(value: string): string {
+  const words = value.trim().split(/\s+/);
+  return words.length > COMMENT_WORD_LIMIT
+    ? words.slice(0, COMMENT_WORD_LIMIT).join(" ")
+    : value;
+}
 
 function nuevaInspeccion(id: string): Inspeccion {
   return {
@@ -330,9 +342,8 @@ function ElementoRow({
             }),
           )}
         </div>
-        <textarea className="comment" placeholder="Comentario (opcional)"
-          value={reg?.comentario ?? ""} disabled={readOnly}
-          onChange={(e) => onChange({ comentario: e.target.value })} />
+        <CommentField value={reg?.comentario ?? ""} readOnly={readOnly}
+          onChange={(comentario) => onChange({ comentario })} />
       </div>
     );
   }
@@ -368,9 +379,30 @@ function ElementoRow({
           </label>
         </div>
       )}
+      <CommentField value={reg?.comentario ?? ""} readOnly={readOnly}
+        onChange={(comentario) => onChange({ comentario })} />
+    </div>
+  );
+}
+
+function CommentField({
+  value, readOnly, onChange,
+}: {
+  value: string;
+  readOnly: boolean;
+  onChange: (value: string) => void;
+}) {
+  const words = countWords(value);
+  return (
+    <div className="comment-wrap">
       <textarea className="comment" placeholder="Comentario (opcional)"
-        value={reg?.comentario ?? ""} disabled={readOnly}
-        onChange={(e) => onChange({ comentario: e.target.value })} />
+        value={value} disabled={readOnly}
+        onChange={(e) => onChange(limitWords(e.target.value))} />
+      {!readOnly && (
+        <div className={`word-count ${words >= COMMENT_WORD_LIMIT ? "limit" : ""}`}>
+          {words}/{COMMENT_WORD_LIMIT} palabras
+        </div>
+      )}
     </div>
   );
 }

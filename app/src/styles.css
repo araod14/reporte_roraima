@@ -111,7 +111,12 @@ textarea { min-height: 70px; resize: vertical; }
 .segmented button.sel-ok { background: var(--ok); border-color: var(--ok); color: #fff; }
 .segmented button.sel-malo { background: var(--malo); border-color: var(--malo); color: #fff; }
 .segmented button.sel-obs { background: var(--obs); border-color: var(--obs); color: #3a2b00; }
-.comment { margin-top: 8px; }
+.comment-wrap { margin-top: 8px; }
+.comment { margin-top: 0; }
+.word-count {
+  margin-top: 3px; text-align: right; color: var(--muted); font-size: 11px;
+}
+.word-count.limit { color: var(--obs); font-weight: 700; }
 .valores { display: flex; gap: 10px; margin-top: 8px; }
 .valores label.field { flex: 1; margin-bottom: 0; }
 
