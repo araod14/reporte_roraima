@@ -34,7 +34,7 @@ _env = Environment(
 _INSTALACION_ORDER = ["SDC", "ISH-1", "ISH-2"]
 _SISTEMA_ORDER = ["LCN", "PCN", "MANT", "SSLL", "FSC", "AIT", "CCC", "UCN", "PLC"]
 
-_ESTADO_PROBLEMA = {"MALO", "OBSERVACION"}
+_ESTADO_PROBLEMA = {"MALO"}
 
 
 def _sha256_bytes(data: bytes) -> str:

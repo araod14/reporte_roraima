@@ -12,7 +12,6 @@
 :root {
   --ok: #2e9e54;
   --malo: #d33a34;
-  --obs: #e0a020;
   --sindato: #9ca3af;
   --azul: #0b5cad;
   --linea: #d7dbe0;
@@ -61,7 +60,7 @@ html, body {
 }
 .count.ok { background: var(--ok); }
 .count.malo { background: var(--malo); }
-.count.obs { background: var(--obs); color: #3a2b00; }
+.count.obs { background: var(--ok); }
 .count.sindato { background: var(--sindato); }
 
 /* -------- Zonas por sistema (dos columnas: reduce la altura ~a la mitad) -------- */
@@ -90,7 +89,7 @@ html, body {
 .tile .nom { font-weight: 700; font-size: 8.4pt; line-height: 1.15; }
 .tile.ok { background: #eaf6ee; border-color: var(--ok); }
 .tile.malo { background: #fdeceb; border-color: var(--malo); }
-.tile.obs { background: #fdf5e3; border-color: var(--obs); }
+.tile.obs { background: #eaf6ee; border-color: var(--ok); }
 .tile.sindato { background: #f3f4f6; border-color: var(--sindato); color: #6b7280; }
 
 .tile .st {
@@ -99,7 +98,7 @@ html, body {
 }
 .tile.ok .st { background: var(--ok); }
 .tile.malo .st { background: var(--malo); }
-.tile.obs .st { background: var(--obs); color: #3a2b00; }
+.tile.obs .st { background: var(--ok); }
 .tile.sindato .st { background: var(--sindato); }
 
 .tile .vals { font-size: 7.5pt; color: #374151; margin-top: 3px; }

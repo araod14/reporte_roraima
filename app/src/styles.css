@@ -110,7 +110,7 @@ textarea { min-height: 70px; resize: vertical; }
 .segmented button { flex: 1; padding: 12px 4px; border: 2px solid var(--border); background: #fff; color: var(--muted); font-size: 13px; }
 .segmented button.sel-ok { background: var(--ok); border-color: var(--ok); color: #fff; }
 .segmented button.sel-malo { background: var(--malo); border-color: var(--malo); color: #fff; }
-.segmented button.sel-obs { background: var(--obs); border-color: var(--obs); color: #3a2b00; }
+.segmented button.sel-obs { background: var(--ok); border-color: var(--ok); color: #fff; }
 .comment-wrap { margin-top: 8px; }
 .comment { margin-top: 0; }
 .word-count {

@@ -75,7 +75,7 @@ body {
 }
 .badge.ok { background: #2e9e54; }
 .badge.malo { background: #d33a34; }
-.badge.obs { background: #e0a020; color: #3a2b00; }
+.badge.obs { background: #2e9e54; }
 .badge.none { background: #9ca3af; }
 
 /* -------- UPS (fuente/batería/fan) -------- */

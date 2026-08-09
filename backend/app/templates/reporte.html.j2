@@ -22,7 +22,7 @@
 <div class="resumen {{ 'ok' if n_problemas == 0 else 'alerta' }}">
   {% if n_problemas == 0 %}
     <div class="resumen-head">✓ Sin elementos con problema</div>
-    <div class="resumen-sub">Todos los elementos capturados están en estado OK.</div>
+    <div class="resumen-sub">No hay elementos capturados en estado MALO.</div>
   {% else %}
     <div class="resumen-head">⚠ {{ n_problemas }} elemento{{ 's' if n_problemas != 1 }} requiere{{ 'n' if n_problemas != 1 }} atención</div>
     <ul class="resumen-list">
