@@ -2,19 +2,21 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Verificación Periódica ISH y SDC — {{ inspeccion.fecha }}</title>
 <style>{{ css_content }}</style>
 </head>
 <body>
 
 <div class="doc-header">
-  <div class="title">Verificación Periódica de ISH y SDC</div>
-  <div class="subtitle">PDVSA — Reporte de inspección · v{{ version }}</div>
+  <div class="eyebrow">Reporte oficial · v{{ version }}</div>
+  <div class="title">Verificación Periódica<br>de ISH y SDC</div>
+  <div class="subtitle">PDVSA · Inspección de sistemas</div>
   <div class="meta-grid">
-    <div><span class="lbl">Fecha</span> {{ inspeccion.fecha }}</div>
-    <div><span class="lbl">Inspeccionado por</span> {{ inspeccion.inspeccionado_por_nombre or "—" }}</div>
-    <div><span class="lbl">Verificado por</span> {{ inspeccion.verificado_por_nombre or "—" }}</div>
-    <div><span class="lbl">Aprobado por</span> {{ inspeccion.aprobado_por_nombre or "—" }}</div>
+    <div class="meta-item meta-date"><span class="lbl">Fecha</span><span class="meta-value">{{ inspeccion.fecha }}</span></div>
+    <div class="meta-item"><span class="lbl">Inspeccionado por</span><span class="meta-value">{{ inspeccion.inspeccionado_por_nombre or "—" }}</span></div>
+    <div class="meta-item"><span class="lbl">Verificado por</span><span class="meta-value">{{ inspeccion.verificado_por_nombre or "—" }}</span></div>
+    <div class="meta-item"><span class="lbl">Aprobado por</span><span class="meta-value">{{ inspeccion.aprobado_por_nombre or "—" }}</span></div>
   </div>
 </div>
 
@@ -29,8 +31,8 @@
       {% for item in resumen %}
       <li>
         <span class="badge {{ 'malo' if item.estado == 'MALO' else 'obs' }}">{{ item.estado }}</span>
-        <span class="rl-loc">{{ item.instalacion }} / {{ item.sistema }}</span>
-        <span class="rl-name">{{ item.nombre }}</span>
+        <span class="rl-loc">{{ item.instalacion }} · {{ item.sistema }}</span>
+        <div class="rl-name">{{ item.nombre }}</div>
         {% if item.comentario %}<div class="rl-com">{{ item.comentario }}</div>{% endif %}
       </li>
       {% endfor %}
@@ -47,27 +49,36 @@
 
 {# ---------- Detalle por sistema ---------- #}
 {% for g in grupos %}
-<div class="card">
-  <div class="card-head">{{ g.instalacion }} · {{ g.sistema }}</div>
+<table class="card">
+  <thead>
+    <tr><th class="card-head">{{ g.instalacion }} · {{ g.sistema }}</th></tr>
+  </thead>
+  <tbody>
 
   {% if g.tipo == 'UPS' %}
     {% for e in g.elementos %}
-    <div class="ups-item">
+    <tr><td class="ups-item">
       <div class="ups-name">{{ e.nombre }}</div>
-      <div class="chips">
+      <div class="ups-grid">
+        <div class="ups-grid-head">
+          <span>Módulo</span><span>Fuente</span><span>Batería</span><span>Fan</span>
+        </div>
         {% set pairs = 4 if e.ups_dobles else 2 %}
         {% for i in range(1, pairs + 1) %}
-          <span class="chip {{ 'on' if e['fuente_' ~ i] else 'off' }}">Fuente {{ i }}</span>
-          <span class="chip {{ 'on' if e['bateria_' ~ i] else 'off' }}">Batería {{ i }}</span>
-          <span class="chip {{ 'on' if e['fan_' ~ i] else 'off' }}">Fan {{ i }}</span>
+        <div class="ups-module">
+          <span class="module-number">{{ i }}</span>
+          <span class="signal {{ 'on' if e['fuente_' ~ i] else 'off' }}">{{ '✓' if e['fuente_' ~ i] else '✕' }}</span>
+          <span class="signal {{ 'on' if e['bateria_' ~ i] else 'off' }}">{{ '✓' if e['bateria_' ~ i] else '✕' }}</span>
+          <span class="signal {{ 'on' if e['fan_' ~ i] else 'off' }}">{{ '✓' if e['fan_' ~ i] else '✕' }}</span>
+        </div>
         {% endfor %}
       </div>
       {% if e.comentario %}<div class="com">{{ e.comentario }}</div>{% endif %}
-    </div>
+    </td></tr>
     {% endfor %}
   {% else %}
     {% for e in g.elementos %}
-    <div class="row">
+    <tr><td class="row">
       <div class="row-main">
         <span class="row-name">{{ e.nombre }}</span>
         <span class="badge {{ {'OK':'ok','MALO':'malo','OBSERVACION':'obs'}.get(e.estado, 'none') }}">
@@ -81,20 +92,25 @@
       </div>
       {% endif %}
       {% if e.comentario %}<div class="com">{{ e.comentario }}</div>{% endif %}
-    </div>
+    </td></tr>
     {% endfor %}
   {% endif %}
-</div>
+  </tbody>
+</table>
 {% endfor %}
 
-{# ---------- Pie fijo (se repite en cada página del PDF) ---------- #}
-<div class="footer">
-  <div class="footer-left">
-    <div>{{ inspeccion.fecha }} · v{{ version }} · generado por {{ generado_por }}</div>
-    <div>Insp: {{ inspeccion.inspeccionado_por_nombre or '—' }} · Verif: {{ inspeccion.verificado_por_nombre or '—' }} · Aprob: {{ inspeccion.aprobado_por_nombre or '—' }}</div>
-    <div class="hash">Hash: {{ hash_short }} · Verifica escaneando el QR →</div>
+{# ---------- Verificación al final, siempre dentro del flujo ---------- #}
+<div class="verification">
+  <div class="verification-copy">
+    <div class="verification-title">Verificación del reporte</div>
+    <div class="verification-help">Escanea el código QR para comprobar la autenticidad de este documento.</div>
+    <div class="verification-meta">
+      <div><span class="lbl">Generado por</span>{{ generado_por }}</div>
+      <div><span class="lbl">Versión</span>v{{ version }}</div>
+    </div>
+    <div class="hash"><span class="lbl">Hash de contenido</span>{{ hash_short }}</div>
   </div>
-  <div class="footer-qr">
+  <div class="verification-qr">
     <img src="{{ qr_uri }}" alt="QR verificación">
   </div>
 </div>
