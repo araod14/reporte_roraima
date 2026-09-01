@@ -58,7 +58,10 @@
   {% if g.tipo == 'UPS' %}
     {% for e in g.elementos %}
     <tr><td class="ups-item">
-      <div class="ups-name">{{ e.nombre }}</div>
+      <div class="ups-title">
+        <div class="ups-name">{{ e.nombre }}</div>
+        {% if e.estado == 'MALO' %}<span class="badge malo">MALO</span>{% endif %}
+      </div>
       <div class="ups-grid">
         <div class="ups-grid-head">
           <span>Módulo</span><span>Fuente</span><span>Batería</span><span>Fan</span>

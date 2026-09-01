@@ -18,6 +18,7 @@ from app.models.inspeccion import Inspeccion
 from app.services.report_service import (
     _INSTALACION_ORDER,
     _SISTEMA_ORDER,
+    _is_tolerant_ups,
     _registro_dict,
 )
 
@@ -31,17 +32,18 @@ _env = Environment(
 
 
 def _ups_visual_state(
-    reg_dict: dict, ups_dobles: bool, *, is_hpm: bool
+    reg_dict: dict, ups_dobles: bool, *, tolera_faltantes: bool
 ) -> tuple[str, str | None]:
     """Deriva el estado y la observación automática de un UPS.
 
-    Para los HPM basta con que una fuente esté activa. Las fuentes y baterías
-    ausentes se detallan como ayuda visual; los fanes no afectan su estado.
+    Para los HPM y PLC basta con que una fuente esté activa, salvo que el
+    operador fuerce MALO. Las fuentes y baterías ausentes se detallan como
+    ayuda visual; los fanes no afectan su estado.
     Los demás UPS conservan la regla estricta de todas las señales activas.
     """
     pares = 4 if ups_dobles else 2
 
-    if is_hpm:
+    if tolera_faltantes:
         fuentes = [bool(reg_dict.get(f"fuente_{i}")) for i in range(1, pares + 1)]
         faltantes = [
             f"{prefijo}{i}"
@@ -50,7 +52,10 @@ def _ups_visual_state(
             if not bool(reg_dict.get(f"{campo}_{i}"))
         ]
         observacion = f"Faltan: {', '.join(faltantes)}" if faltantes else None
-        return ("ok" if any(fuentes) else "malo", observacion)
+        status = "malo" if reg_dict.get("estado") == "MALO" else (
+            "ok" if any(fuentes) else "malo"
+        )
+        return status, observacion
 
     campos = []
     for i in range(1, pares + 1):
@@ -88,7 +93,7 @@ def build_slides(db: Session, inspeccion: Inspeccion) -> list[dict]:
             status, observacion_automatica = _ups_visual_state(
                 reg_dict,
                 cat.ups_dobles,
-                is_hpm="HPM" in cat.nombre.upper(),
+                tolera_faltantes=_is_tolerant_ups(cat),
             )
         else:
             status = _simple_status(reg_dict.get("estado"))

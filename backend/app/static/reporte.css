@@ -194,7 +194,8 @@ body {
 .badge.none { background: #667085; }
 
 /* -------- UPS: una fila clara por módulo -------- */
-.ups-name { font-size: 11.5pt; font-weight: 800; margin-bottom: 2mm; }
+.ups-title { align-items: flex-start; display: flex; gap: 2mm; justify-content: space-between; margin-bottom: 2mm; }
+.ups-name { font-size: 11.5pt; font-weight: 800; }
 .ups-grid { border: 1px solid var(--line); border-radius: 2mm; overflow: hidden; }
 .ups-grid-head, .ups-module {
   align-items: center;

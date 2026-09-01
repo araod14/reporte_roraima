@@ -9,7 +9,7 @@ from app.routers.reportes import reporte_to_out
 from app.schemas.inspeccion import InspeccionIn, InspeccionListItem, InspeccionOut
 from app.schemas.reporte import ReporteOut
 from app.services.inspeccion_service import upsert_inspeccion
-from app.services.report_service import generar_reporte
+from app.services.report_service import forced_bad_with_invalid_comment, generar_reporte
 
 router = APIRouter(prefix="/api/inspecciones", tags=["inspecciones"])
 
@@ -61,6 +61,15 @@ def finalizar(
         raise HTTPException(
             status_code=409,
             detail="La inspección ya está finalizada. Para corregir, cree una nueva versión.",
+        )
+    comentario_invalido = forced_bad_with_invalid_comment(db, insp)
+    if comentario_invalido:
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                "Agregue un comentario de 1 a 20 palabras para los equipos "
+                f"marcados MALO: {', '.join(comentario_invalido)}"
+            ),
         )
     reporte = generar_reporte(db, insp, current.username)
     return reporte_to_out(reporte)

@@ -37,6 +37,26 @@ _SISTEMA_ORDER = ["LCN", "PCN", "MANT", "SSLL", "FSC", "AIT", "CCC", "UCN", "PLC
 _ESTADO_PROBLEMA = {"MALO"}
 
 
+def _is_tolerant_ups(cat: CatalogoElemento) -> bool:
+    """HPM y equipos del sistema PLC operan si tienen alguna fuente activa."""
+    return cat.tipo == TIPO_UPS and (
+        "HPM" in cat.nombre.upper() or cat.sistema.upper() == "PLC"
+    )
+
+
+def forced_bad_with_invalid_comment(db: Session, inspeccion: Inspeccion) -> list[str]:
+    """Lista equipos tolerantes MALO sin comentario válido (1..20 palabras)."""
+    catalogo = {c.codigo: c for c in db.query(CatalogoElemento).all()}
+    return [
+        cat.nombre
+        for reg in inspeccion.registros
+        if (cat := catalogo.get(reg.catalogo_codigo)) is not None
+        and _is_tolerant_ups(cat)
+        and reg.estado == "MALO"
+        and not 1 <= len((reg.comentario or "").split()) <= 20
+    ]
+
+
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -130,7 +150,9 @@ def build_context(db: Session, inspeccion: Inspeccion) -> tuple[dict, str]:
             }
         grupos[key]["elementos"].append(elem)
 
-        if cat.tipo != TIPO_UPS and reg.estado in _ESTADO_PROBLEMA:
+        if reg.estado in _ESTADO_PROBLEMA and (
+            cat.tipo != TIPO_UPS or _is_tolerant_ups(cat)
+        ):
             resumen.append(
                 {
                     "instalacion": cat.instalacion,

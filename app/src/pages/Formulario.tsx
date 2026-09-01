@@ -112,6 +112,18 @@ export function Formulario() {
 
   async function finalizar() {
     if (!insp) return;
+    const comentarioInvalido = catalogo.find((el) => {
+      const reg = insp.registros[el.codigo];
+      const toleraFaltantes = el.tipo === "UPS"
+        && (el.nombre.toUpperCase().includes("HPM") || el.sistema.toUpperCase() === "PLC");
+      const palabras = countWords(reg?.comentario ?? "");
+      return toleraFaltantes && reg?.estado === "MALO"
+        && (palabras === 0 || palabras > COMMENT_WORD_LIMIT);
+    });
+    if (comentarioInvalido) {
+      showToast(`Agrega un comentario de hasta 20 palabras para ${comentarioInvalido.nombre}.`);
+      return;
+    }
     if (!navigator.onLine) {
       showToast("Necesitas conexión para finalizar.");
       return;
@@ -313,6 +325,9 @@ function ElementoRow({
 }) {
   if (el.tipo === "UPS") {
     const pares = el.ups_dobles ? [1, 2, 3, 4] : [1, 2];
+    const toleraFaltantes = el.nombre.toUpperCase().includes("HPM")
+      || el.sistema.toUpperCase() === "PLC";
+    const forzarMalo = reg?.estado === "MALO";
     return (
       <div className="elem">
         <div className="nombre">{el.nombre}</div>
@@ -332,6 +347,13 @@ function ElementoRow({
             }),
           )}
         </div>
+        {toleraFaltantes && (
+          <label className={`bad-toggle ${forzarMalo ? "on" : ""}`}>
+            <input type="checkbox" checked={forzarMalo} disabled={readOnly}
+              onChange={(e) => onChange({ estado: e.target.checked ? "MALO" : null })} />
+            <span>Marcar equipo como MALO</span>
+          </label>
+        )}
         <CommentField value={reg?.comentario ?? ""} readOnly={readOnly}
           onChange={(comentario) => onChange({ comentario })} />
       </div>
