@@ -1,5 +1,5 @@
-"""Vista visual "panel sinóptico": 3 slides (una por instalación) con cada
-equipo como tile coloreado por estado.
+"""Vista visual "panel sinóptico" con cada equipo como tile coloreado por
+estado: slides interactivos en HTML y páginas verticales legibles en PDF.
 
 A diferencia del reporte oficial (`report_service`), esta vista es una AYUDA
 VISUAL regenerable: se renderiza en cada request, no se congela en disco ni
@@ -135,6 +135,15 @@ def render_slides_html(db: Session, inspeccion: Inspeccion, generado_por: str) -
 
 
 def render_slides_pdf(db: Session, inspeccion: Inspeccion, generado_por: str) -> bytes:
-    """PDF apaisado (3 páginas) de la vista de slides."""
-    html_str = _render_html(db, inspeccion, generado_por)
+    """PDF vertical 9:16, optimizado para lectura desde celulares."""
+    with open(os.path.join(_STATIC_DIR, "slides_pdf.css"), encoding="utf-8") as f:
+        css_content = f.read()
+    template = _env.get_template("slides_pdf.html.j2")
+    html_str = template.render(
+        inspeccion=inspeccion,
+        slides=build_slides(db, inspeccion),
+        css_content=css_content,
+        generado_por=generado_por,
+        fecha_generacion=datetime.now(timezone.utc),
+    )
     return HTML(string=html_str, base_url=_STATIC_DIR).write_pdf()

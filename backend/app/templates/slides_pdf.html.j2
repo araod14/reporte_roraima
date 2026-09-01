@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Esquema visual ISH y SDC — {{ inspeccion.fecha }}</title>
+<style>{{ css_content }}</style>
+</head>
+<body>
+
+{% set st_label = {"ok": "OK", "malo": "MALO", "obs": "OBSERV.", "sindato": "S/D"} %}
+
+{% for s in slides %}
+<section class="installation">
+  <header class="installation-head">
+    <div class="eyebrow">Esquema visual · Verificación periódica ISH y SDC</div>
+    <h1>{{ s.instalacion }}</h1>
+    <div class="head-meta">
+      <span>{{ inspeccion.fecha }}</span>
+      <span>Generado por {{ generado_por }}</span>
+    </div>
+    <div class="counts">
+      <span class="count ok"><b>{{ s.stats.ok }}</b> OK</span>
+      <span class="count malo"><b>{{ s.stats.malo }}</b> Malo</span>
+      <span class="count obs"><b>{{ s.stats.obs }}</b> Obs.</span>
+      {% if s.stats.sindato %}<span class="count sindato"><b>{{ s.stats.sindato }}</b> S/D</span>{% endif %}
+    </div>
+  </header>
+
+  {% for z in s.sistemas %}
+  <table class="system">
+    <thead>
+      <tr><th colspan="2"><span>{{ s.instalacion }}</span> · {{ z.sistema }}</th></tr>
+    </thead>
+    <tbody>
+      {% for pair in z.elementos|batch(2) %}
+      <tr>
+        {% for e in pair %}
+        <td>
+          <div class="tile {{ e.status }}">
+            <div class="tile-top">
+              <div class="nom">{{ e.nombre }}</div>
+              <span class="st">{{ st_label[e.status] }}</span>
+            </div>
+
+            {% if e.tipo == 'UPS' %}
+            <div class="subchips">
+              {% set pairs = 4 if e.ups_dobles else 2 %}
+              {% for i in range(1, pairs + 1) %}
+                <span class="subchip {{ 'on' if e['fuente_' ~ i] else 'off' }}">F{{ i }}</span>
+                <span class="subchip {{ 'on' if e['bateria_' ~ i] else 'off' }}">B{{ i }}</span>
+                <span class="subchip {{ 'on' if e['fan_' ~ i] else 'off' }}">V{{ i }}</span>
+              {% endfor %}
+            </div>
+            {% elif e.tipo == 'CCC' and (e.valor_a or e.valor_b) %}
+            <div class="vals"><b>A</b> {{ e.valor_a or '—' }} <span>·</span> <b>B</b> {{ e.valor_b or '—' }}</div>
+            {% endif %}
+
+            {% if e.comentario %}<div class="com">{{ e.comentario }}</div>{% endif %}
+          </div>
+        </td>
+        {% endfor %}
+        {% if pair|length == 1 %}<td class="empty"></td>{% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endfor %}
+
+  <div class="notice">Vista visual — no es el reporte oficial firmado</div>
+</section>
+{% endfor %}
+
+</body>
+</html>

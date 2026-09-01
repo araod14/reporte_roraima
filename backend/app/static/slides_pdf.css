@@ -1,0 +1,211 @@
+/* Esquema visual mobile-first: página vertical 9:16 para lectura sin zoom. */
+
+@page {
+  size: 108mm 192mm;
+  margin: 7mm 6mm 12mm;
+
+  @bottom-left {
+    content: "ISH y SDC · " string(current-installation);
+    color: #667085;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+  }
+
+  @bottom-right {
+    content: "Página " counter(page) " de " counter(pages);
+    color: #667085;
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+  }
+}
+
+* { box-sizing: border-box; }
+
+:root {
+  --blue: #075ca8;
+  --blue-dark: #06467f;
+  --text: #17212b;
+  --muted: #5f6b7a;
+  --line: #d8dee6;
+  --ok: #187a3d;
+  --ok-soft: #e7f5ec;
+  --warning: #9a6700;
+  --warning-soft: #fff4d6;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --none: #667085;
+  --none-soft: #f1f3f5;
+}
+
+html, body { margin: 0; }
+
+body {
+  background: #fff;
+  color: var(--text);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.installation { break-before: page; }
+.installation:first-child { break-before: auto; }
+
+.installation-head {
+  border-bottom: 2.5px solid var(--blue);
+  margin-bottom: 3mm;
+  padding-bottom: 3mm;
+}
+
+.eyebrow {
+  color: var(--blue);
+  font-size: 8.5pt;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+h1 {
+  color: var(--blue-dark);
+  font-size: 20pt;
+  line-height: 1.05;
+  margin: 1mm 0;
+  string-set: current-installation content();
+}
+
+.head-meta {
+  color: var(--muted);
+  display: flex;
+  font-size: 9pt;
+  justify-content: space-between;
+}
+
+.counts {
+  display: flex;
+  gap: 1.5mm;
+  margin-top: 2.5mm;
+}
+
+.count {
+  border: 1px solid;
+  border-radius: 999px;
+  flex: 1;
+  font-size: 8.5pt;
+  font-weight: 700;
+  padding: 1.2mm 1mm;
+  text-align: center;
+}
+
+.count.ok { background: var(--ok-soft); border-color: #78b98e; color: var(--ok); }
+.count.malo { background: var(--danger-soft); border-color: #e29a94; color: var(--danger); }
+.count.obs { background: var(--warning-soft); border-color: #dfbd67; color: var(--warning); }
+.count.sindato { background: var(--none-soft); border-color: #b7bec7; color: var(--none); }
+
+.system {
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0 0 3mm;
+  width: 100%;
+}
+
+.system thead { display: table-header-group; }
+.system thead th {
+  background: var(--blue);
+  border-radius: 2mm 2mm 0 0;
+  color: #fff;
+  font-size: 10.5pt;
+  letter-spacing: .01em;
+  padding: 1.8mm 2.5mm;
+  text-align: left;
+}
+
+.system thead th span { font-weight: 850; }
+
+.system tbody tr { break-inside: avoid; }
+.system td {
+  padding: 1.2mm .6mm 0;
+  vertical-align: top;
+  width: 50%;
+}
+.system td:first-child { padding-left: 0; }
+.system td:last-child { padding-right: 0; }
+.system td.empty { background: transparent; }
+
+.tile {
+  border: 1px solid;
+  border-radius: 2mm;
+  min-height: 13mm;
+  padding: 2mm;
+}
+
+.tile.ok { background: var(--ok-soft); border-color: #78b98e; }
+.tile.malo { background: var(--danger-soft); border-color: #e29a94; }
+.tile.obs { background: var(--warning-soft); border-color: #dfbd67; }
+.tile.sindato { background: var(--none-soft); border-color: #b7bec7; color: #4f5967; }
+
+.tile-top {
+  align-items: flex-start;
+  display: flex;
+  gap: 1.2mm;
+  justify-content: space-between;
+}
+
+.nom {
+  font-size: 10pt;
+  font-weight: 800;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.st {
+  border-radius: 999px;
+  color: #fff;
+  flex: 0 0 auto;
+  font-size: 7.5pt;
+  font-weight: 850;
+  line-height: 1.15;
+  padding: 1mm 1.5mm;
+  white-space: nowrap;
+}
+
+.tile.ok .st { background: var(--ok); }
+.tile.malo .st { background: var(--danger); }
+.tile.obs .st { background: var(--warning); }
+.tile.sindato .st { background: var(--none); }
+
+.vals { color: #374151; font-size: 9pt; margin-top: 1.5mm; }
+.vals span { color: #98a2b3; margin: 0 1mm; }
+
+.com {
+  border-top: 1px solid rgba(23, 33, 43, .13);
+  color: #415164;
+  font-size: 9pt;
+  line-height: 1.25;
+  margin-top: 1.5mm;
+  padding-top: 1.2mm;
+}
+
+.subchips { margin-top: 1.5mm; }
+.subchip {
+  border: 1px solid;
+  border-radius: 1.2mm;
+  display: inline-block;
+  font-size: 7.5pt;
+  font-weight: 800;
+  margin: 0 .8mm .8mm 0;
+  min-width: 6mm;
+  padding: .8mm 1mm;
+  text-align: center;
+}
+.subchip.on { background: var(--ok); border-color: var(--ok); color: #fff; }
+.subchip.off { background: #fff; border-color: var(--danger); color: var(--danger); }
+
+.notice {
+  border-top: 1px solid var(--line);
+  color: var(--warning);
+  font-size: 8.5pt;
+  font-weight: 750;
+  margin-top: 1mm;
+  padding-top: 2mm;
+  text-align: right;
+}

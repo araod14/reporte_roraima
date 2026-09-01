@@ -35,7 +35,7 @@ def slides_pdf(
     db: Session = Depends(get_db),
     current: User = Depends(get_current_user),
 ) -> Response:
-    """Panel sinóptico en PDF apaisado (3 páginas, compartible por WhatsApp)."""
+    """Panel sinóptico en PDF vertical, optimizado para compartir por teléfono."""
     insp = _get_insp(db, inspeccion_id)
     pdf = render_slides_pdf(db, insp, current.username)
     return Response(
