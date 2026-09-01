@@ -184,6 +184,7 @@ h1 {
   margin-top: 1.5mm;
   padding-top: 1.2mm;
 }
+.com.auto { color: var(--warning); font-weight: 750; }
 
 .subchips { margin-top: 1.5mm; }
 .subchip {

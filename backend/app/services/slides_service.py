@@ -30,17 +30,32 @@ _env = Environment(
 )
 
 
-def _ups_status(reg_dict: dict, ups_dobles: bool) -> str:
-    """Deriva el estado de un UPS a partir de sus fuente/batería/fan.
+def _ups_visual_state(
+    reg_dict: dict, ups_dobles: bool, *, is_hpm: bool
+) -> tuple[str, str | None]:
+    """Deriva el estado y la observación automática de un UPS.
 
-    ok  -> todas las señales de los pares (2, o 4 si ups_dobles) en True
-    malo -> alguna señal en False
+    Para los HPM basta con que una fuente esté activa. Las fuentes y baterías
+    ausentes se detallan como ayuda visual; los fanes no afectan su estado.
+    Los demás UPS conservan la regla estricta de todas las señales activas.
     """
     pares = 4 if ups_dobles else 2
+
+    if is_hpm:
+        fuentes = [bool(reg_dict.get(f"fuente_{i}")) for i in range(1, pares + 1)]
+        faltantes = [
+            f"{prefijo}{i}"
+            for i in range(1, pares + 1)
+            for prefijo, campo in (("F", "fuente"), ("B", "bateria"))
+            if not bool(reg_dict.get(f"{campo}_{i}"))
+        ]
+        observacion = f"Faltan: {', '.join(faltantes)}" if faltantes else None
+        return ("ok" if any(fuentes) else "malo", observacion)
+
     campos = []
     for i in range(1, pares + 1):
         campos += [reg_dict.get(f"fuente_{i}"), reg_dict.get(f"bateria_{i}"), reg_dict.get(f"fan_{i}")]
-    return "ok" if all(bool(v) for v in campos) else "malo"
+    return ("ok" if all(bool(v) for v in campos) else "malo", None)
 
 
 def _simple_status(estado: str | None) -> str:
@@ -68,10 +83,16 @@ def build_slides(db: Session, inspeccion: Inspeccion) -> list[dict]:
 
         if reg is None:
             status = "sindato"
+            observacion_automatica = None
         elif cat.tipo == TIPO_UPS:
-            status = _ups_status(reg_dict, cat.ups_dobles)
+            status, observacion_automatica = _ups_visual_state(
+                reg_dict,
+                cat.ups_dobles,
+                is_hpm="HPM" in cat.nombre.upper(),
+            )
         else:
             status = _simple_status(reg_dict.get("estado"))
+            observacion_automatica = None
 
         elem = {
             "nombre": cat.nombre,
@@ -79,6 +100,7 @@ def build_slides(db: Session, inspeccion: Inspeccion) -> list[dict]:
             "ups_dobles": cat.ups_dobles,
             "status": status,
             "comentario": reg_dict.get("comentario"),
+            "observacion_automatica": observacion_automatica,
             "valor_a": reg_dict.get("valor_a"),
             "valor_b": reg_dict.get("valor_b"),
             **{

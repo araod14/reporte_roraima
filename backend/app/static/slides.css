@@ -103,6 +103,7 @@ html, body {
   font-size: 7pt; color: #4b5563; margin-top: 3px; font-style: italic;
   overflow-wrap: anywhere; word-break: break-word;
 }
+.tile .com.auto { color: #9a6700; font-weight: 700; }
 
 /* UPS sub-chips */
 .subchips { margin-top: 4px; }
