@@ -14,6 +14,7 @@ app/dist/
 app/dev-dist/
 app/tsconfig.tsbuildinfo
 .playwright-mcp/
+linkedin/
 
 # Entornos y secretos
 .env
