@@ -131,6 +131,35 @@ body {
 
 .obs-generales .lbl { margin-bottom: 1mm; }
 
+/* -------- Comparativo por instalación -------- */
+.status-overview {
+  border: 1px solid var(--line);
+  border-radius: 3mm;
+  break-inside: avoid;
+  margin-bottom: 4mm;
+  padding: 3.5mm;
+}
+.status-overview-head { align-items: flex-end; display: flex; justify-content: space-between; margin-bottom: 3mm; }
+.status-overview-title { color: var(--blue-dark); font-size: 13pt; font-weight: 850; margin-top: .5mm; }
+.status-overview-note { color: var(--muted); font-size: 8.5pt; }
+.status-chart-row { align-items: center; display: flex; gap: 2.5mm; margin-top: 2.2mm; }
+.status-chart-label { flex: 0 0 22mm; line-height: 1.1; }
+.status-chart-label b { display: block; font-size: 9.5pt; }
+.status-chart-label span { color: var(--muted); font-size: 7.5pt; }
+.status-bar { background: #e5e7eb; border-radius: 999px; display: flex; flex: 1; height: 8mm; overflow: hidden; }
+.status-segment { align-items: center; color: #fff; display: flex; font-size: 7.5pt; font-weight: 850; justify-content: center; white-space: nowrap; }
+.status-segment.ok, .status-legend i.ok { background: var(--ok); }
+.status-segment.malo, .status-legend i.malo { background: var(--danger); }
+.status-segment.obs, .status-legend i.obs { background: var(--warning); }
+.status-segment.sindato, .status-legend i.sindato { background: #667085; }
+.status-legend { display: flex; gap: 3mm; justify-content: flex-end; margin-top: 2.5mm; }
+.status-legend span { align-items: center; color: var(--muted); display: flex; font-size: 7.5pt; font-weight: 750; gap: 1mm; }
+.status-legend i { border-radius: 50%; display: inline-block; height: 2.3mm; width: 2.3mm; }
+.status-breakdown { border-top: 1px solid var(--line); margin-top: 2.5mm; padding-top: 1.5mm; }
+.status-breakdown > div { display: flex; flex-wrap: wrap; font-size: 7.2pt; gap: .8mm 2mm; margin-top: 1.2mm; }
+.status-breakdown b { flex: 0 0 17mm; }
+.status-breakdown span { color: var(--muted); flex: 0 0 30mm; white-space: nowrap; }
+
 /* -------- Sistemas y equipos -------- */
 .card {
   border: 1px solid var(--line);

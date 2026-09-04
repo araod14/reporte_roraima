@@ -48,8 +48,8 @@ body {
   overflow-wrap: anywhere;
 }
 
-.installation { break-before: page; }
-.installation:first-child { break-before: auto; }
+.overview { break-after: page; }
+.installation + .installation { break-before: page; }
 
 .installation-head {
   border-bottom: 2.5px solid var(--blue);
@@ -100,6 +100,28 @@ h1 {
 .count.malo { background: var(--danger-soft); border-color: #e29a94; color: var(--danger); }
 .count.obs { background: var(--warning-soft); border-color: #dfbd67; color: var(--warning); }
 .count.sindato { background: var(--none-soft); border-color: #b7bec7; color: var(--none); }
+
+/* -------- Resumen general -------- */
+.overview-copy { color: #415164; font-size: 13pt; font-weight: 800; margin: 8mm 0 6mm; }
+.overview-row { margin-bottom: 7mm; }
+.overview-label { align-items: baseline; display: flex; justify-content: space-between; margin-bottom: 1.5mm; }
+.overview-label b { color: var(--blue-dark); font-size: 13pt; }
+.overview-label span { color: var(--muted); font-size: 8.5pt; }
+.overview-bar { background: #e5e7eb; border-radius: 999px; display: flex; height: 10mm; overflow: hidden; }
+.overview-segment { align-items: center; color: #fff; display: flex; font-size: 8pt; font-weight: 850; justify-content: center; white-space: nowrap; }
+.overview-segment.ok, .overview-legend i.ok { background: var(--ok); }
+.overview-segment.malo, .overview-legend i.malo { background: var(--danger); }
+.overview-segment.obs, .overview-legend i.obs { background: var(--warning); }
+.overview-segment.sindato, .overview-legend i.sindato { background: var(--none); }
+.overview-values { display: flex; flex-wrap: wrap; gap: 1mm 2mm; margin-top: 1.5mm; }
+.overview-values span { color: var(--muted); flex: 0 0 47%; font-size: 7.5pt; white-space: nowrap; }
+.overview-values span.ok b { color: var(--ok); }
+.overview-values span.malo b { color: var(--danger); }
+.overview-values span.obs b { color: var(--warning); }
+.overview-values span.sindato b { color: var(--none); }
+.overview-legend { display: flex; gap: 5mm; justify-content: center; margin-top: 8mm; }
+.overview-legend span { align-items: center; color: var(--muted); display: flex; font-size: 8pt; font-weight: 750; gap: 1.2mm; }
+.overview-legend i { border-radius: 50%; display: inline-block; height: 2.5mm; width: 2.5mm; }
 
 .system {
   border-collapse: separate;

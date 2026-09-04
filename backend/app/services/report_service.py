@@ -34,7 +34,12 @@ _env = Environment(
 _INSTALACION_ORDER = ["SDC", "ISH-1", "ISH-2"]
 _SISTEMA_ORDER = ["LCN", "PCN", "MANT", "SSLL", "FSC", "AIT", "CCC", "UCN", "PLC"]
 
-_ESTADO_PROBLEMA = {"MALO"}
+_STATUS_ORDER = (
+    ("ok", "OK"),
+    ("malo", "MALO"),
+    ("obs", "OBSERV."),
+    ("sindato", "S/D"),
+)
 
 
 def _is_tolerant_ups(cat: CatalogoElemento) -> bool:
@@ -91,14 +96,122 @@ def _registro_dict(reg) -> dict:
     }
 
 
+def _ups_visual_state(
+    reg_dict: dict, ups_dobles: bool, *, tolera_faltantes: bool
+) -> tuple[str, str | None]:
+    """Deriva el estado visual de un UPS a partir de sus señales."""
+    pares = 4 if ups_dobles else 2
+
+    if tolera_faltantes:
+        fuentes = [bool(reg_dict.get(f"fuente_{i}")) for i in range(1, pares + 1)]
+        faltantes = [
+            f"{prefijo}{i}"
+            for i in range(1, pares + 1)
+            for prefijo, campo in (("F", "fuente"), ("B", "bateria"))
+            if not bool(reg_dict.get(f"{campo}_{i}"))
+        ]
+        observacion = f"Faltan: {', '.join(faltantes)}" if faltantes else None
+        status = (
+            "malo"
+            if reg_dict.get("estado") == "MALO"
+            else ("ok" if any(fuentes) else "malo")
+        )
+        return status, observacion
+
+    campos = []
+    for i in range(1, pares + 1):
+        campos += [
+            reg_dict.get(f"fuente_{i}"),
+            reg_dict.get(f"bateria_{i}"),
+            reg_dict.get(f"fan_{i}"),
+        ]
+    return ("ok" if all(bool(v) for v in campos) else "malo", None)
+
+
+def _simple_status(estado: str | None) -> str:
+    return {
+        "OK": "ok",
+        "MALO": "malo",
+        "OBSERVACION": "obs",
+    }.get(estado or "", "sindato")
+
+
+def _element_visual_state(
+    cat: CatalogoElemento, reg
+) -> tuple[str, str | None]:
+    if reg is None:
+        return "sindato", None
+    reg_dict = _registro_dict(reg)
+    if cat.tipo == TIPO_UPS:
+        return _ups_visual_state(
+            reg_dict,
+            cat.ups_dobles,
+            tolera_faltantes=_is_tolerant_ups(cat),
+        )
+    return _simple_status(reg_dict.get("estado")), None
+
+
+def build_status_summary(
+    catalogo: list[CatalogoElemento], registros: dict[str, object]
+) -> tuple[dict[str, str], list[dict]]:
+    """Estados por equipo y totales/porcentajes por instalación."""
+    statuses: dict[str, str] = {}
+    stats_by_installation: dict[str, dict[str, int]] = {}
+
+    for cat in catalogo:
+        status, _ = _element_visual_state(cat, registros.get(cat.codigo))
+        statuses[cat.codigo] = status
+        stats = stats_by_installation.setdefault(
+            cat.instalacion,
+            {"ok": 0, "malo": 0, "obs": 0, "sindato": 0, "total": 0},
+        )
+        stats[status] += 1
+        stats["total"] += 1
+
+    overview = []
+    installation_names = sorted(
+        stats_by_installation,
+        key=lambda name: (
+            _INSTALACION_ORDER.index(name)
+            if name in _INSTALACION_ORDER
+            else 98
+        ),
+    )
+    for installation in installation_names:
+        stats = stats_by_installation[installation]
+        total = stats["total"]
+        segments = [
+            {
+                "status": status,
+                "label": label,
+                "count": stats[status],
+                "percentage": (stats[status] * 100 / total) if total else 0,
+                "percentage_label": round(stats[status] * 100 / total) if total else 0,
+            }
+            for status, label in _STATUS_ORDER
+        ]
+        overview.append(
+            {
+                "instalacion": installation,
+                "stats": stats,
+                "segments": segments,
+            }
+        )
+    return statuses, overview
+
+
 def build_context(db: Session, inspeccion: Inspeccion) -> tuple[dict, str]:
     """Construye el contexto del reporte y el content_hash de los datos.
 
     Devuelve (context, content_hash). El context ya está agrupado por
     instalación -> sistema y contiene el resumen ejecutivo.
     """
-    catalogo = {c.codigo: c for c in db.query(CatalogoElemento).all()}
+    catalogo_list = list(db.query(CatalogoElemento).all())
+    catalogo = {c.codigo: c for c in catalogo_list}
     registros = {r.catalogo_codigo: r for r in inspeccion.registros}
+    visual_statuses, estado_instalaciones = build_status_summary(
+        catalogo_list, registros
+    )
 
     # --- datos canónicos para el hash (orden estable por código) ---
     canonical = {
@@ -150,15 +263,13 @@ def build_context(db: Session, inspeccion: Inspeccion) -> tuple[dict, str]:
             }
         grupos[key]["elementos"].append(elem)
 
-        if reg.estado in _ESTADO_PROBLEMA and (
-            cat.tipo != TIPO_UPS or _is_tolerant_ups(cat)
-        ):
+        if visual_statuses[codigo] == "malo":
             resumen.append(
                 {
                     "instalacion": cat.instalacion,
                     "sistema": cat.sistema,
                     "nombre": cat.nombre,
-                    "estado": reg.estado,
+                    "estado": "MALO",
                     "comentario": reg.comentario,
                 }
             )
@@ -176,6 +287,7 @@ def build_context(db: Session, inspeccion: Inspeccion) -> tuple[dict, str]:
         "grupos": grupos_ordenados,
         "resumen": resumen,
         "n_problemas": len(resumen),
+        "estado_instalaciones": estado_instalaciones,
     }
     return context, content_hash
 

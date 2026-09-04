@@ -10,8 +10,44 @@
 
 {% set st_label = {"ok": "OK", "malo": "MALO", "obs": "OBSERV.", "sindato": "S/D"} %}
 
+<section class="slide overview-slide" data-idx="0">
+  <div class="slide-head">
+    <div>
+      <div class="inst">Resumen general</div>
+      <div class="sub">Verificación Periódica ISH y SDC · {{ inspeccion.fecha }}</div>
+    </div>
+  </div>
+  <div class="overview-copy">Estado de los equipos por instalación</div>
+  <div class="overview-chart">
+    {% for installation in overview %}
+    <div class="overview-row">
+      <div class="overview-label"><b>{{ installation.instalacion }}</b><span>{{ installation.stats.total }} equipos</span></div>
+      <div class="overview-bar">
+        {% for segment in installation.segments if segment.count %}
+        <div class="overview-segment {{ segment.status }}" style="width: {{ segment.percentage }}%">
+          {% if segment.percentage >= 12 %}<span>{{ segment.count }} · {{ segment.percentage_label }}%</span>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      <div class="overview-values">
+        {% for segment in installation.segments %}<span class="{{ segment.status }}">{{ segment.label }} <b>{{ segment.count }}</b> · {{ segment.percentage_label }}%</span>{% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="overview-legend">
+    {% for status, label in [('ok', 'OK'), ('malo', 'MALO'), ('obs', 'OBSERV.'), ('sindato', 'S/D')] %}
+    <span><i class="{{ status }}"></i>{{ label }}</span>
+    {% endfor %}
+  </div>
+  <div class="slide-foot">
+    <span>{{ inspeccion.fecha }} · generado por {{ generado_por }}</span>
+    <span class="aviso">Vista visual — no es el reporte oficial firmado</span>
+  </div>
+</section>
+
 {% for s in slides %}
-<section class="slide" data-idx="{{ loop.index0 }}">
+<section class="slide" data-idx="{{ loop.index }}">
   <div class="slide-head">
     <div>
       <div class="inst">{{ s.instalacion }}</div>

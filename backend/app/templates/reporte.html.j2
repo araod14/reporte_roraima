@@ -47,6 +47,42 @@
 </div>
 {% endif %}
 
+{# ---------- Estado general por instalación ---------- #}
+<div class="status-overview">
+  <div class="status-overview-head">
+    <div>
+      <div class="lbl">Estado general</div>
+      <div class="status-overview-title">Comparativo por instalación</div>
+    </div>
+    <div class="status-overview-note">Porcentaje del catálogo</div>
+  </div>
+  {% for installation in estado_instalaciones %}
+  <div class="status-chart-row">
+    <div class="status-chart-label">
+      <b>{{ installation.instalacion }}</b>
+      <span>{{ installation.stats.total }} equipos</span>
+    </div>
+    <div class="status-bar" aria-label="Estados de {{ installation.instalacion }}">
+      {% for segment in installation.segments if segment.count %}
+      <div class="status-segment {{ segment.status }}" style="width: {{ segment.percentage }}%">
+        {% if segment.percentage >= 12 %}<span>{{ segment.count }} · {{ segment.percentage_label }}%</span>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  <div class="status-legend">
+    {% for status, label in [('ok', 'OK'), ('malo', 'MALO'), ('obs', 'OBSERV.'), ('sindato', 'S/D')] %}
+    <span><i class="{{ status }}"></i>{{ label }}</span>
+    {% endfor %}
+  </div>
+  <div class="status-breakdown">
+    {% for installation in estado_instalaciones %}
+    <div><b>{{ installation.instalacion }}</b>{% for segment in installation.segments if segment.count %}<span>{{ segment.label }} {{ segment.count }} · {{ segment.percentage_label }}%</span>{% endfor %}</div>
+    {% endfor %}
+  </div>
+</div>
+
 {# ---------- Detalle por sistema ---------- #}
 {% for g in grupos %}
 <table class="card">

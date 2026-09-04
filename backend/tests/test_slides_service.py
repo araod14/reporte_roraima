@@ -6,6 +6,7 @@ from app.models.catalogo import TIPO_UPS
 from app.services.report_service import (
     _is_tolerant_ups,
     build_context,
+    build_status_summary,
     forced_bad_with_invalid_comment,
 )
 from app.services.slides_service import _ups_visual_state
@@ -28,6 +29,109 @@ class HpmVisualStateTests(unittest.TestCase):
 
         self.assertEqual(state, "ok")
         self.assertEqual(observation, "Faltan: B1, F2")
+
+
+class StatusSummaryTests(unittest.TestCase):
+    def test_groups_all_catalog_items_and_marks_missing_records(self):
+        cats = [
+            SimpleNamespace(
+                codigo="SDC|LCN|A",
+                instalacion="SDC",
+                sistema="LCN",
+                nombre="A",
+                tipo="SIMPLE",
+                ups_dobles=False,
+            ),
+            SimpleNamespace(
+                codigo="SDC|LCN|B",
+                instalacion="SDC",
+                sistema="LCN",
+                nombre="B",
+                tipo="SIMPLE",
+                ups_dobles=False,
+            ),
+            SimpleNamespace(
+                codigo="ISH-1|LCN|C",
+                instalacion="ISH-1",
+                sistema="LCN",
+                nombre="C",
+                tipo="SIMPLE",
+                ups_dobles=False,
+            ),
+        ]
+        records = {
+            cats[0].codigo: SimpleNamespace(
+                estado="OK",
+                comentario=None,
+                valor_a=None,
+                valor_b=None,
+                **{
+                    f"{kind}_{i}": None
+                    for i in range(1, 5)
+                    for kind in ("fuente", "bateria", "fan")
+                },
+            ),
+            cats[2].codigo: SimpleNamespace(
+                estado="OBSERVACION",
+                comentario=None,
+                valor_a=None,
+                valor_b=None,
+                **{
+                    f"{kind}_{i}": None
+                    for i in range(1, 5)
+                    for kind in ("fuente", "bateria", "fan")
+                },
+            ),
+        }
+
+        statuses, overview = build_status_summary(cats, records)
+
+        self.assertEqual(statuses[cats[1].codigo], "sindato")
+        self.assertEqual(overview[0]["instalacion"], "SDC")
+        self.assertEqual(overview[0]["stats"]["ok"], 1)
+        self.assertEqual(overview[0]["stats"]["sindato"], 1)
+        self.assertEqual(overview[0]["segments"][0]["percentage_label"], 50)
+        self.assertEqual(overview[1]["stats"]["obs"], 1)
+
+    def test_strict_ups_bad_state_is_shared_with_official_summary(self):
+        cat = SimpleNamespace(
+            codigo="ISH-1|UCN|UPS",
+            instalacion="ISH-1",
+            sistema="UCN",
+            nombre="UPS",
+            tipo=TIPO_UPS,
+            ups_dobles=False,
+            orden=1,
+        )
+        reg = SimpleNamespace(
+            catalogo_codigo=cat.codigo,
+            estado=None,
+            comentario="Fan detenido",
+            valor_a=None,
+            valor_b=None,
+            **{
+                f"{kind}_{i}": kind != "fan" or i == 1
+                for i in range(1, 5)
+                for kind in ("fuente", "bateria", "fan")
+            },
+        )
+        inspection = SimpleNamespace(
+            id="inspection-id",
+            fecha=SimpleNamespace(isoformat=lambda: "2026-09-01"),
+            inspeccionado_por_nombre="Operador",
+            verificado_por_nombre="",
+            aprobado_por_nombre="",
+            observaciones_generales="",
+            registros=[reg],
+        )
+        db = Mock()
+        db.query.return_value.all.return_value = [cat]
+
+        context, _ = build_context(db, inspection)
+
+        self.assertEqual(context["n_problemas"], 1)
+        self.assertEqual(context["resumen"][0]["estado"], "MALO")
+        self.assertEqual(context["estado_instalaciones"][0]["stats"]["malo"], 1)
 
 
 class TolerantUpsTests(unittest.TestCase):
