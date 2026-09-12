@@ -1,7 +1,9 @@
+import type { Diario } from "./diarios";
 import Dexie, { type Table } from "dexie";
 import type { CatalogoElemento, Inspeccion } from "./types";
 
 class RoraimaDB extends Dexie {
+  diarios!: Table<Diario, string>;
   inspecciones!: Table<Inspeccion, string>;
   catalogo!: Table<CatalogoElemento, string>;
   meta!: Table<{ key: string; value: string }, string>;
@@ -13,6 +15,7 @@ class RoraimaDB extends Dexie {
       catalogo: "codigo, orden",
       meta: "key",
     });
+    this.version(2).stores({ diarios: "id, estado, syncState, client_updated_at" });
   }
 }
 

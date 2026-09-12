@@ -61,3 +61,36 @@ alembic upgrade head
 Ver `app/services/report_service.py`. Los archivos se escriben en
 `REPORTS_DIR/{inspeccion_id}/v{n}.{html,pdf}` una sola vez. El hash de bytes se calcula
 sobre exactamente esos archivos; por eso **no deben regenerarse**.
+
+## Reportes diarios
+
+`/api/diarios` ofrece listado y consulta compartidos por los usuarios autenticados,
+guardado por UUID, sincronización (`POST /sync`), finalización, reapertura e imágenes
+por versión. Consulte los cuerpos de entrada en `/api/docs`. Un borrador permite
+estados y temperaturas vacíos; al finalizar se exige responsable, ambos LCN,
+las 16 GUS del catálogo y ambas temperaturas. La hora de captura corresponde a
+Venezuela; puede haber varias capturas por fecha. Observaciones: hasta 1.000 caracteres.
+
+El PNG se genera una sola vez por versión en `REPORTS_DIR/diarios/`, junto con
+una copia de los datos y hashes SHA-256 en la base. Una corrección conserva todas
+las versiones previas. Las descargas sirven los bytes guardados. La finalización
+serializa operaciones por UUID en PostgreSQL y comprueba versión y timestamp
+para evitar cerrar datos distintos de los revisados. Los reintentos del mismo
+cierre devuelven su versión existente.
+
+Para actualizar, instalar `requirements.txt`, ejecutar `alembic upgrade head` y
+`python -m app.seed` antes de iniciar la API. La migración agrega únicamente
+`diarios` y `versiones_diario`; no modifica inspecciones o reportes semanales.
+En Docker el entrypoint ejecuta esos pasos. Las instalaciones nuevas usan la
+misma secuencia. Respaldar la base y el volumen de reportes antes de actualizar.
+
+Pillow es una dependencia directa. Docker ya incluye DejaVu Sans; en instalaciones
+nativas Linux instalar DejaVu Sans o Liberation Sans en las rutas estándar de
+Debian/Fedora. Si faltan fuentes, el cierre devuelve un error y conserva el borrador.
+
+Pruebas aisladas (no usan la base ni los archivos de producción):
+
+```bash
+pip install -r requirements-dev.txt
+python -m unittest discover -s tests -v
+```

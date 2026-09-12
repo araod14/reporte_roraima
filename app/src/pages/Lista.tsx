@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuid } from "uuid";
 import { db, delMeta, getMeta } from "../db";
 import { startAutoSync, syncAll } from "../sync";
+import type { Diario } from "../diarios";
 import type { Inspeccion } from "../types";
 
 function useOnline() {
@@ -20,7 +21,7 @@ function useOnline() {
   return online;
 }
 
-function estadoBadge(insp: Inspeccion) {
+function estadoBadge(insp: Pick<Inspeccion, "estado" | "syncState">) {
   if (insp.estado === "FINALIZADA") return <span className="badge finalizada">Finalizada</span>;
   if (insp.syncState === "pending") return <span className="badge pending">Pendiente</span>;
   return <span className="badge synced">Sincronizada</span>;
@@ -28,6 +29,8 @@ function estadoBadge(insp: Inspeccion) {
 
 export function Lista() {
   const [items, setItems] = useState<Inspeccion[]>([]);
+  const [diarios, setDiarios] = useState<Diario[]>([]);
+  const [filter, setFilter] = useState("todos");
   const [username, setUsername] = useState("");
   const [toast, setToast] = useState("");
   const [syncing, setSyncing] = useState(false);
@@ -38,6 +41,7 @@ export function Lista() {
     const all = await db.inspecciones.toArray();
     all.sort((a, b) => b.client_updated_at.localeCompare(a.client_updated_at));
     setItems(all);
+    setDiarios(await db.diarios.toArray());
   }, []);
 
   useEffect(() => {
@@ -75,13 +79,19 @@ export function Lista() {
     navigate(`/insp/${uuid()}`);
   }
 
-  const pendientes = items.filter((i) => i.syncState === "pending").length;
+  const pendientes = [...items, ...diarios].filter((i) => i.syncState === "pending").length;
+  const entries = [
+    ...items.map((i) => ({ id: i.id, tipo: "semanal", fecha: i.fecha, hora: "", who: i.inspeccionado_por_nombre,
+      url: `/insp/${i.id}`, estado: i.estado, syncState: i.syncState, updated: i.client_updated_at })),
+    ...diarios.map((i) => ({ id: i.id, tipo: "diario", fecha: i.datos.fecha, hora: i.datos.hora, who: i.datos.responsable,
+      url: `/diario/${i.id}`, estado: i.estado, syncState: i.syncState, updated: i.client_updated_at })),
+  ].filter((i) => filter === "todos" || i.tipo === filter).sort((a, b) => b.updated.localeCompare(a.updated));
 
   return (
     <div className="app">
       <div className="topbar">
         <div>
-          <h1>Inspecciones</h1>
+          <h1>Reportes</h1>
           <div className="sub">{username}</div>
         </div>
         <button onClick={logout}>Salir</button>
@@ -99,28 +109,26 @@ export function Lista() {
           </button>
         </div>
 
-        {items.length === 0 && (
-          <p style={{ color: "var(--muted)", textAlign: "center", marginTop: 40 }}>
-            No hay inspecciones. Crea una nueva con el botón +.
-          </p>
-        )}
-
-        {items.map((insp) => (
-          <Link key={insp.id} to={`/insp/${insp.id}`} className="list-item">
+        <div className="report-actions">
+          <button className="btn-primary" onClick={nueva}>Reporte semanal</button>
+          <button className="btn-primary" onClick={() => navigate(`/diario/${uuid()}`)}>Reporte diario</button>
+        </div>
+        <div className="btn-row report-filters" role="group" aria-label="Tipo de reporte">
+          {[["todos", "Todos"], ["semanal", "Semanales"], ["diario", "Diarios"]].map(([value, label]) =>
+            <button key={value} aria-pressed={filter === value} className={filter === value ? "btn-primary" : ""}
+              onClick={() => setFilter(value)}>{label}</button>)}
+        </div>
+        {entries.length === 0 && <p>No hay reportes en esta vista. Crea uno con los botones superiores.</p>}
+        {entries.map((entry) => (
+          <Link key={`${entry.tipo}-${entry.id}`} to={entry.url} className="list-item">
             <div>
-              <div className="fecha">{insp.fecha}</div>
-              <div className="who">
-                {insp.inspeccionado_por_nombre || "Sin inspector"}
-              </div>
+              <div className="fecha">{entry.fecha} {entry.hora}</div>
+              <div className="who">{entry.tipo === "diario" ? "Diario" : "Semanal"} · {entry.who || "Sin responsable"}</div>
             </div>
-            {estadoBadge(insp)}
+            {estadoBadge(entry)}
           </Link>
         ))}
       </div>
-
-      <button className="btn-primary fab" onClick={nueva} aria-label="Nueva inspección">
-        + Nueva
-      </button>
 
       {toast && <div className="toast">{toast}</div>}
     </div>

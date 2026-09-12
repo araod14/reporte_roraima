@@ -1,3 +1,4 @@
+import { syncDiarios } from "./diarios";
 import {
   syncBatch,
   fetchCatalogo,
@@ -133,14 +134,21 @@ export async function pullRemote(): Promise<number> {
 export async function syncAll(): Promise<SyncResult & { pulled: number }> {
   const push = await syncNow();
   let pulled = 0;
+  let synced = push.synced;
+  const errors = push.ok ? [] : [push.message ?? "Error al subir inspecciones"];
   try {
     pulled = await pullRemote();
   } catch (e) {
-    if (!push.ok) return { ...push, pulled: 0 };
-    const msg = e instanceof ApiError ? e.message : "Error al descargar";
-    return { ok: false, synced: push.synced, message: msg, pulled: 0 };
+    errors.push(e instanceof Error ? e.message : "Error al descargar inspecciones");
   }
-  return { ...push, pulled };
+  try {
+    const diarios = await syncDiarios();
+    synced += diarios.synced;
+    pulled += diarios.pulled;
+  } catch (e) {
+    errors.push(e instanceof Error ? e.message : "Error al sincronizar diarios");
+  }
+  return { ok: errors.length === 0, synced, pulled, message: errors.join(" · ") || undefined };
 }
 
 // Refresca el catálogo desde el backend; si falla, usa el empaquetado.

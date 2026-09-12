@@ -3,6 +3,7 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { getMeta } from "./db";
 import { Login } from "./pages/Login";
 import { Lista } from "./pages/Lista";
+import { Diario } from "./pages/Diario";
 import { Formulario } from "./pages/Formulario";
 
 export function App() {
@@ -27,6 +28,7 @@ export function App() {
         path="/insp/:id"
         element={authed ? <Formulario /> : <Navigate to="/login" replace />}
       />
+      <Route path="/diario/:id" element={authed ? <Diario /> : <Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

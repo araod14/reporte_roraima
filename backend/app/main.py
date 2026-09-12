@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.routers import auth, catalogo, inspecciones, reportes, slides, sync, verificar
+from app.routers import diarios, auth, catalogo, inspecciones, reportes, slides, sync, verificar
 
 app = FastAPI(
     title="Verificación Periódica ISH y SDC — API",
@@ -23,6 +23,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(diarios.router)
 app.include_router(auth.router)
 app.include_router(catalogo.router)
 app.include_router(inspecciones.router)

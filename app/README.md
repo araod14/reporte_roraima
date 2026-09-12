@@ -63,3 +63,26 @@ VITE_API_BASE_URL=https://reportes.midominio.com
 `report.ts` usa `navigator.share({ files: [pdf] })` (Web Share API, soportada en Android
 Chrome). Si el navegador no soporta compartir archivos, cae automáticamente a descargar
 el PDF.
+
+## Reporte diario
+
+La pantalla principal tiene botones **Reporte semanal** y **Reporte diario**, y
+filtros del historial. El diario guarda automáticamente borradores en IndexedDB;
+la actualización del esquema local conserva las inspecciones existentes.
+
+Capture fecha/hora de Venezuela, responsable, LCN A/B, las GUS y temperaturas
+ISH-1/ISH-2 en °C (coma o punto decimal). Las observaciones son opcionales.
+El último responsable ingresado se recuerda en el teléfono. Los estados GUS
+se capturan cada día; no se copian de una inspección semanal.
+
+Los borradores se sincronizan al recuperar conexión, cada minuto mientras la
+pantalla está abierta y con **Sincronizar ahora** en el historial. Finalizar
+requiere conexión y todos los campos obligatorios. Si otro teléfono cambió el
+reporte, revise la versión recuperada antes de finalizar.
+
+Después del cierre puede ver, descargar y compartir el PNG. El menú de compartir
+requiere un navegador compatible en HTTPS (o localhost); de lo contrario se
+descarga la imagen para adjuntarla manualmente. Una imagen ya abierta puede
+compartirse sin conexión mientras permanezca en pantalla; abrir otra versión
+requiere conexión. Reabrir permite corregir y generar una nueva versión,
+conservando las imágenes anteriores.
