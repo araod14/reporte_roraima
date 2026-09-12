@@ -47,6 +47,7 @@ class DiariosTests(unittest.TestCase):
             "client_updated_at": datetime.now(timezone.utc).isoformat(),
             "datos": {"fecha": "2026-09-12", "hora": "09:30", "responsable": "José Pérez",
                       "lcn_a": "OK", "lcn_b": "SUSPECT",
+                      "ucn1": "OK", "ucn2": "FAIL", "ucn3": "OK",
                       "gus": {c["codigo"]: ["OK", "MALO", "OBSERVACION"][i % 3] for i, c in enumerate(gus_catalogo())},
                       "temperatura_ish1": 24.5, "temperatura_ish2": -1.2, "observaciones": "Revisión de señal. °C"},
         }
@@ -73,7 +74,7 @@ class DiariosTests(unittest.TestCase):
         self.assertEqual(self.client.get(self.url).json()["estado"], "BORRADOR")
 
     def test_invalid_states_temperatures_and_catalog(self):
-        for field, bad in (("lcn_a", "MALO"), ("temperatura_ish1", "infinity"),
+        for field, bad in (("ucn1", "SUSPECT"), ("ucn2", "MALO"), ("ucn3", "INVALID"), ("lcn_a", "MALO"), ("temperatura_ish1", "infinity"),
                            ("hora", "25:30"), ("observaciones", "a" * 1001), ("gus", {"unknown": "OK"})):
             with self.subTest(field=field):
                 original = self.payload["datos"][field]
@@ -90,6 +91,46 @@ class DiariosTests(unittest.TestCase):
         self.payload["client_updated_at"] = (datetime.now(timezone.utc) + timedelta(seconds=1)).isoformat()
         self.save()
         self.assertEqual(self.close().status_code, 422)
+
+    def test_legacy_draft_requires_all_ucn_before_closing(self):
+        for key in ("ucn1", "ucn2", "ucn3"):
+            self.payload["datos"].pop(key)
+        self.assertEqual(self.save().status_code, 200)
+        for key in ("ucn1", "ucn2", "ucn3"):
+            self.assertEqual(self.close().status_code, 422)
+            self.payload["datos"][key] = "FAIL" if key == "ucn2" else "OK"
+            self.payload["client_updated_at"] = datetime.now(timezone.utc).isoformat()
+            self.assertEqual(self.save().status_code, 200)
+        result = self.close()
+        self.assertEqual(result.status_code, 200, result.text)
+        self.assertEqual(result.json()["datos"]["ucn2"], "FAIL")
+
+    def test_legacy_finalized_image_is_served_without_regeneration(self):
+        legacy = dict(self.payload["datos"])
+        for key in ("ucn1", "ucn2", "ucn3"):
+            legacy.pop(key)
+        image = io.BytesIO()
+        Image.new("RGB", (1080, 1200), "white").save(image, format="PNG")
+        saved_bytes = image.getvalue()
+        path = Path(self.temp.name) / "legacy.png"
+        path.write_bytes(saved_bytes)
+        timestamp = datetime.now(timezone.utc)
+        with Session(self.engine) as session:
+            session.add(Diario(id=self.payload["id"], datos=legacy, estado="FINALIZADA",
+                               version=1, created_by="inspector", client_updated_at=timestamp))
+            session.flush()
+            session.add(VersionDiario(diario_id=self.payload["id"], version=1, datos=legacy,
+                                      png_path=str(path), png_sha256=hashlib.sha256(saved_bytes).hexdigest(),
+                                      content_hash=hashlib.sha256(json.dumps(legacy, sort_keys=True, ensure_ascii=False).encode()).hexdigest(),
+                                      generado_por="inspector"))
+            session.commit()
+        with patch("app.services.diario_service.generar_png", side_effect=AssertionError("No regenerar")):
+            result = self.client.get(self.url).json()
+            self.assertNotIn("ucn1", result["datos"])
+            self.assertEqual(self.client.get(result["versiones"][0]["png_url"]).content, saved_bytes)
+        reopened = self.client.post(self.url + "/reabrir", json={"version": 1}).json()
+        self.assertEqual(self.close(version=1, timestamp=reopened["client_updated_at"]).status_code, 422)
+        self.assertEqual(path.read_bytes(), saved_bytes)
 
     def test_sync_retries_and_older_edits(self):
         first = self.client.post("/api/diarios/sync", json={"diarios": [self.payload]}).json()

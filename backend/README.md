@@ -68,7 +68,7 @@ sobre exactamente esos archivos; por eso **no deben regenerarse**.
 guardado por UUID, sincronización (`POST /sync`), finalización, reapertura e imágenes
 por versión. Consulte los cuerpos de entrada en `/api/docs`. Un borrador permite
 estados y temperaturas vacíos; al finalizar se exige responsable, ambos LCN,
-las 16 GUS del catálogo y ambas temperaturas. La hora de captura corresponde a
+UCN1/UCN2/UCN3 (OK/FAIL), las 16 GUS del catálogo y ambas temperaturas. La hora de captura corresponde a
 Venezuela; puede haber varias capturas por fecha. Observaciones: hasta 1.000 caracteres.
 
 El PNG se genera una sola vez por versión en `REPORTS_DIR/diarios/`, junto con
@@ -94,3 +94,7 @@ Pruebas aisladas (no usan la base ni los archivos de producción):
 pip install -r requirements-dev.txt
 python -m unittest discover -s tests -v
 ```
+
+Los estados UCN se guardan en el JSON del diario y no requieren otra migración.
+Los borradores antiguos deben completarlos antes de finalizar. Las versiones
+finalizadas anteriores mantienen sus datos, PNG y hashes originales.

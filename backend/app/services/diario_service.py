@@ -41,9 +41,10 @@ def validar_gus(datos: DatosDiario):
 def validar_cierre(datos: DatosDiario):
     validar_gus(datos)
     if (not datos.responsable.strip() or not datos.lcn_a or not datos.lcn_b
+            or not datos.ucn1 or not datos.ucn2 or not datos.ucn3
             or datos.temperatura_ish1 is None or datos.temperatura_ish2 is None
             or set(datos.gus) != {c["codigo"] for c in gus_catalogo()}):
-        raise HTTPException(422, "Complete responsable, LCN, todas las GUS y ambas temperaturas")
+        raise HTTPException(422, "Complete responsable, LCN, UCN1, UCN2, UCN3, todas las GUS y ambas temperaturas")
 
 
 def upsert_diario(db: Session, data: DiarioIn, username: str):
@@ -116,14 +117,17 @@ def generar_png(datos: dict, version: int) -> bytes:
     line(f'Responsable: {datos["responsable"]}')
     section("ESTADO LCN")
     colors = {"OK": ("#176334", "#e7f6ec"), "SUSPECT": ("#704800", "#fff2cd"),
-              "MALO": ("#a61d24", "#fdeceb"), "OBSERVACION": ("#704800", "#fff2cd")}
+              "FAIL": ("#a61d24", "#fdeceb"), "MALO": ("#a61d24", "#fdeceb"), "OBSERVACION": ("#704800", "#fff2cd")}
 
     def status_line(label, state):
         color, background = colors[state]
-        line(f'{label}   ·   {"OBSERVACIÓN" if state == "OBSERVACION" else state}', regular, color, background)
+        line(f'{label}   ·   {"OBSERVACIÓN" if state == "OBSERVACION" else "Fail" if state == "FAIL" else state}', regular, color, background)
 
     status_line("LCN A", datos["lcn_a"])
     status_line("LCN B", datos["lcn_b"])
+    section("ESTADO UCN")
+    for key in ("ucn1", "ucn2", "ucn3"):
+        status_line(key.upper(), datos[key])
     section("TEMPERATURAS")
     for key, label in (("temperatura_ish1", "ISH-1"), ("temperatura_ish2", "ISH-2")):
         line(f'{label}   ·   {datos[key]:g} °C')

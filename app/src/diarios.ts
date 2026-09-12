@@ -4,12 +4,17 @@ import { CATALOGO_FALLBACK } from "./catalogo";
 import type { Estado, SyncState } from "./types";
 
 export type EstadoLCN = "OK" | "SUSPECT";
+export type EstadoUCN = "OK" | "FAIL";
 export interface DatosDiario {
   fecha: string;
   hora: string;
   responsable: string;
   lcn_a: EstadoLCN | null;
   lcn_b: EstadoLCN | null;
+  // Opcionales para consultar capturas anteriores a la incorporación de UCN.
+  ucn1?: EstadoUCN | null;
+  ucn2?: EstadoUCN | null;
+  ucn3?: EstadoUCN | null;
   gus: Record<string, Estado>;
   temperatura_ish1: number | null;
   temperatura_ish2: number | null;
@@ -50,6 +55,9 @@ export function fechaHoraVenezuela() {
 export function validarDiario(datos: DatosDiario): string | null {
   if (!datos.fecha || !datos.hora || !datos.responsable.trim()) return "Completa fecha, hora y responsable.";
   if (!datos.lcn_a || !datos.lcn_b) return "Selecciona el estado de LCN A y LCN B.";
+  if ([datos.ucn1, datos.ucn2, datos.ucn3].some((state) => state !== "OK" && state !== "FAIL")) {
+    return "Selecciona el estado de UCN1, UCN2 y UCN3.";
+  }
   if (GUS.some((g) => !datos.gus[g.codigo])) return "Selecciona el estado de todas las GUS.";
   if ([datos.temperatura_ish1, datos.temperatura_ish2].some((t) => t === null || !Number.isFinite(t))) {
     return "Completa ambas temperaturas con valores numéricos.";

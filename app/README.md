@@ -70,7 +70,7 @@ La pantalla principal tiene botones **Reporte semanal** y **Reporte diario**, y
 filtros del historial. El diario guarda automáticamente borradores en IndexedDB;
 la actualización del esquema local conserva las inspecciones existentes.
 
-Capture fecha/hora de Venezuela, responsable, LCN A/B, las GUS y temperaturas
+Capture fecha/hora de Venezuela, responsable, LCN A/B, UCN1/UCN2/UCN3 (OK/Fail), las GUS y temperaturas
 ISH-1/ISH-2 en °C (coma o punto decimal). Las observaciones son opcionales.
 El último responsable ingresado se recuerda en el teléfono. Los estados GUS
 se capturan cada día; no se copian de una inspección semanal.

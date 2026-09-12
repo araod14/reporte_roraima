@@ -46,7 +46,7 @@ export function Diario() {
       if (!value) {
         value = {
           id, datos: { ...fechaHoraVenezuela(), responsable: await getMeta("diarioResponsable") ?? "",
-            lcn_a: null, lcn_b: null, gus: {}, temperatura_ish1: null, temperatura_ish2: null, observaciones: "" },
+            lcn_a: null, lcn_b: null, ucn1: null, ucn2: null, ucn3: null, gus: {}, temperatura_ish1: null, temperatura_ish2: null, observaciones: "" },
           estado: "BORRADOR", version: 0, versiones: [], syncState: "pending", client_updated_at: new Date().toISOString(),
         };
         await db.diarios.put(value);
@@ -152,8 +152,8 @@ export function Diario() {
     return <div className="elem"><div className="nombre">{label}</div>
       <div className="segmented" role="group" aria-label={label}>
         {options.map((v) => <button key={v} disabled={disabled} aria-pressed={value === v}
-          className={value === v ? v === "OK" ? "sel-ok" : v === "MALO" ? "sel-malo" : "daily-amber" : ""}
-          onClick={() => onChange(v)}>{v === "OBSERVACION" ? "OBSERVACIÓN" : v}</button>)}
+          className={value === v ? v === "OK" ? "sel-ok" : (v === "MALO" || v === "FAIL") ? "sel-malo" : "daily-amber" : ""}
+          onClick={() => onChange(v)}>{v === "OBSERVACION" ? "OBSERVACIÓN" : v === "FAIL" ? "Fail" : v}</button>)}
       </div></div>;
   }
 
@@ -173,6 +173,12 @@ export function Diario() {
       <section className="section daily-section"><h2>Estado LCN</h2>
         {status("LCN A", data.lcn_a, ["OK", "SUSPECT"], (v) => apply({ lcn_a: v as DatosDiario["lcn_a"] }))}
         {status("LCN B", data.lcn_b, ["OK", "SUSPECT"], (v) => apply({ lcn_b: v as DatosDiario["lcn_b"] }))}
+      </section>
+      <section className="section daily-section"><h2>Estado UCN</h2>
+        {(["ucn1", "ucn2", "ucn3"] as const).map((key) => <div key={key}>
+          {status(key.toUpperCase(), data[key], ["OK", "FAIL"], (v) => apply({ [key]: v as DatosDiario[typeof key] }))}
+          {readOnly && !data[key] && <div className="who">Sin dato en esta versión</div>}
+        </div>)}
       </section>
       <section className="section daily-section"><h2>Temperaturas</h2>
         {(["temperatura_ish1", "temperatura_ish2"] as const).map((key, index) => <label key={key} className="field">

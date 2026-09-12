@@ -11,6 +11,9 @@ class DatosDiario(BaseModel):
     responsable: str = Field(default="", max_length=120)
     lcn_a: Literal["OK", "SUSPECT"] | None = None
     lcn_b: Literal["OK", "SUSPECT"] | None = None
+    ucn1: Literal["OK", "FAIL"] | None = None
+    ucn2: Literal["OK", "FAIL"] | None = None
+    ucn3: Literal["OK", "FAIL"] | None = None
     gus: dict[str, Literal["OK", "MALO", "OBSERVACION"]] = Field(default_factory=dict)
     temperatura_ish1: FiniteFloat | None = None
     temperatura_ish2: FiniteFloat | None = None
