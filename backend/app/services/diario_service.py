@@ -71,7 +71,7 @@ def upsert_diario(db: Session, data: DiarioIn, username: str):
     return item, status
 
 
-def generar_png(datos: dict, version: int) -> bytes:
+def generar_png(datos: dict) -> bytes:
     """Dibuja texto medido y envuelto; el alto crece con las observaciones."""
     candidates = [
         ("/usr/share/fonts/truetype/dejavu", "DejaVuSans.ttf", "DejaVuSans-Bold.ttf"),
@@ -136,8 +136,6 @@ def generar_png(datos: dict, version: int) -> bytes:
         status_line(cat["nombre"], datos["gus"][cat["codigo"]])
     section("OBSERVACIONES")
     line(datos["observaciones"].strip() or "Sin observaciones")
-    line("")
-    line(f"Versión {version}", regular, "#526176")
     heights = [84 if font is title else 66 for _, font, _, _ in rows]
     im = Image.new("RGB", (1080, 96 + sum(heights)), "white")
     draw = ImageDraw.Draw(im)
@@ -157,7 +155,7 @@ def finalizar_diario(db: Session, item: Diario, username: str):
     validar_cierre(datos)
     version = item.version + 1
     snapshot = datos.model_dump(mode="json")
-    png = generar_png(snapshot, version)
+    png = generar_png(snapshot)
     digest = hashlib.sha256(png).hexdigest()
     # Nombre por contenido: jamás se sobreescribe una imagen diferente, incluso
     # si un proceso cae después de escribir el archivo y antes del commit.
