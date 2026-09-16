@@ -152,6 +152,10 @@ textarea { min-height: 70px; resize: vertical; }
 .daily-section { padding: 14px; margin-top: 12px; }
 .daily-section h2 { font-size: 16px; color: var(--brand); margin: 0 0 12px; }
 .daily-section h2 small { color: var(--muted); font-size: 12px; }
+.daily input.temperature-green { background: #e7f6ec; color: #176334; border-color: var(--ok); }
+.daily input.temperature-yellow { background: #fff2cd; color: #704800; border-color: var(--obs); }
+.daily input.temperature-red { background: #fdeceb; color: #a61d24; border-color: var(--malo); }
+.daily input[class^="temperature-"]:disabled { opacity: 1; -webkit-text-fill-color: currentColor; }
 .daily .segmented button.daily-amber { background: #fff2cd; color: #704800; border-color: var(--obs); }
 .daily-preview { width: 100%; height: auto; display: block; margin-bottom: 14px; }
 .daily-message { border: 1px solid var(--brand); border-radius: 10px; padding: 12px; background: #eaf1f9; overflow-wrap: anywhere; }

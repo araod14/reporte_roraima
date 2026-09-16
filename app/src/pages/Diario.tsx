@@ -9,6 +9,11 @@ import {
 } from "../diarios";
 import { downloadBlob } from "../report";
 
+function temperatureClass(value: number | null) {
+  if (value === null || !Number.isFinite(value)) return "";
+  return value > 35 ? "temperature-red" : value > 25 ? "temperature-yellow" : "temperature-green";
+}
+
 export function Diario() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -182,7 +187,7 @@ export function Diario() {
       </section>
       <section className="section daily-section"><h2>Temperaturas</h2>
         {(["temperatura_ish1", "temperatura_ish2"] as const).map((key, index) => <label key={key} className="field">
-          <span>ISH-{index + 1} (°C)</span><input inputMode="decimal" disabled={disabled}
+          <span>ISH-{index + 1} (°C)</span><input inputMode="decimal" disabled={disabled} className={temperatureClass(data[key])}
             value={readOnly ? data[key] ?? "" : temperatureText[key] ?? data[key] ?? ""}
             placeholder="Ej.: 24,5" onChange={(e) => {
               const text = e.target.value;

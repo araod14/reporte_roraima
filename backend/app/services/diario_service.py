@@ -130,7 +130,9 @@ def generar_png(datos: dict) -> bytes:
         status_line(key.upper(), datos[key])
     section("TEMPERATURAS")
     for key, label in (("temperatura_ish1", "ISH-1"), ("temperatura_ish2", "ISH-2")):
-        line(f'{label}   ·   {datos[key]:g} °C')
+        temperature = datos[key]
+        color, background = colors["FAIL" if temperature > 35 else "SUSPECT" if temperature > 25 else "OK"]
+        line(f'{label}   ·   {temperature:g} °C', regular, color, background)
     section("ESTADO GUS")
     for cat in gus_catalogo():
         status_line(cat["nombre"], datos["gus"][cat["codigo"]])
