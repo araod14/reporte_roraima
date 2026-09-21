@@ -201,6 +201,44 @@ class DiariosTests(unittest.TestCase):
         self.assertEqual(self.client.put(f"/api/diarios/{other['id']}", json=other).status_code, 200)
         self.assertEqual(len(self.client.get("/api/diarios").json()), 2)
 
+    def test_public_esquema_uses_latest_frozen_version(self):
+        empty = self.client.get("/api/diarios/esquema")
+        self.assertEqual(empty.status_code, 200)
+        self.assertIn("Todavía no hay reportes diarios finalizados", empty.text)
+        self.assertIn("GUS1H01", empty.text)
+        self.assertEqual(empty.headers["cache-control"], "no-store")
+        self.save()
+        first = self.close()
+        self.assertEqual(first.status_code, 200, first.text)
+        with Session(self.engine) as session:
+            version = session.scalar(select(VersionDiario))
+            version.fecha_generacion = datetime(2026, 9, 20, tzinfo=timezone.utc)
+            session.commit()
+        page = self.client.get("/api/diarios/esquema")
+        self.assertIn("José Pérez", page.text)
+        self.assertIn("2026-09-12 · 09:30 (Venezuela)", page.text)
+        self.assertIn("Revisión de señal. °C", page.text)
+        self.assertIn('class="gus-tile ok"', page.text)
+        self.assertIn('class="gus-tile malo"', page.text)
+        self.assertIn('class="gus-tile observacion"', page.text)
+        self.assertEqual(page.text.count('class="gus-tile '), 16)
+        self.assertLess(page.text.index("GUS1A01"), page.text.index("GUS1A02"))
+        self.assertLess(page.text.index("GUS1E01"), page.text.index("GUS1E02"))
+
+        self.client.post(self.url + "/reabrir", json={"version": 1})
+        self.payload["version"] = 1
+        self.payload["client_updated_at"] = (datetime.now(timezone.utc) + timedelta(seconds=2)).isoformat()
+        self.payload["datos"]["responsable"] = "<script>alert(1)</script>"
+        self.payload["datos"]["observaciones"] = "Nueva versión"
+        self.save()
+        self.assertIn("José Pérez", self.client.get("/api/diarios/esquema").text)
+        self.assertEqual(self.close(version=1).status_code, 200)
+        latest = self.client.get("/api/diarios/esquema")
+        self.assertIn("&lt;script&gt;alert(1)&lt;/script&gt;", latest.text)
+        self.assertNotIn("<script>alert(1)</script>", latest.text)
+        self.assertIn("Nueva versión", latest.text)
+        self.assertNotIn("Revisión de señal. °C", latest.text)
+
     def test_long_observations_expand_without_changing_width(self):
         self.save()
         first = self.close().json()["versiones"][0]

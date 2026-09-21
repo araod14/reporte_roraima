@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="60">
+  <title>Esquema GUS · Último reporte diario</title>
+  <style>{{ css_content | safe }}</style>
+</head>
+<body>
+  <main class="sheet">
+    <header class="page-head">
+      <div><span class="eyebrow">ISH / SDC · Roraima</span><h1>Estado de consolas GUS</h1></div>
+      <span class="live">Actualización automática cada minuto</span>
+    </header>
+    {% if not has_report %}<div class="notice" role="status">Todavía no hay reportes diarios finalizados.</div>{% endif %}
+    <p class="scroll-hint">Desliza el plano horizontalmente para recorrer la sala.</p>
+    <div class="room-scroll"><div class="room" aria-label="Plano de la sala de control visto desde arriba">
+      {% for group in groups %}
+      <section class="panel {{ group.class_name }}" aria-labelledby="title-{{ group.class_name }}">
+        <h2 id="title-{{ group.class_name }}">{{ group.title }}</h2>
+        <div class="gus-row">
+          {% for item in group["items"] %}
+          <div class="gus-tile {{ item.state | lower if item.state else 'empty' }}">
+            <span class="code">{{ item.name }}</span>
+            <span class="state">{{ 'OBSERVACIÓN' if item.state == 'OBSERVACION' else item.state or 'Sin dato' }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+      {% endfor %}
+      <section class="panel signals-lcn" aria-labelledby="lcn-title"><h2 id="lcn-title">Estado LCN</h2>
+        {% for signal in signals[:2] %}<div class="signal"><span>{{ signal.label }}</span><strong class="pill {{ signal.state | lower if signal.state else 'empty' }}">{{ signal.state or 'Sin dato' }}</strong></div>{% endfor %}
+      </section>
+      <section class="panel signals-ucn" aria-labelledby="ucn-title"><h2 id="ucn-title">Estado UCN</h2>
+        {% for signal in signals[2:] %}<div class="signal"><span>{{ signal.label }}</span><strong class="pill {{ signal.state | lower if signal.state else 'empty' }}">{{ signal.state or 'Sin dato' }}</strong></div>{% endfor %}
+      </section>
+      <section class="panel temperatures" aria-labelledby="temp-title">
+        <h2 id="temp-title">Temperaturas</h2>
+        {% for temp in temperatures %}
+        {% set tone = 'empty' if temp.value is none else 'malo' if temp.value > 35 else 'observacion' if temp.value > 25 else 'ok' %}
+        <div class="temperature"><span>{{ temp.label }}</span><strong class="pill {{ tone }}">{{ '%g' | format(temp.value) ~ ' °C' if temp.value is not none else 'Sin dato' }}</strong></div>
+        {% endfor %}
+      </section>
+      <section class="panel observations" aria-labelledby="obs-title"><h2 id="obs-title">Observaciones</h2><p>{{ observaciones | trim if observaciones and observaciones | trim else 'Sin observaciones' if has_report else 'Sin reporte disponible' }}</p></section>
+      <section class="panel details" aria-labelledby="details-title"><h2 id="details-title">Última actualización</h2>
+        <dl><dt>Fecha del reporte</dt><dd>{{ fecha or '—' }}{% if hora %} · {{ hora }} (Venezuela){% endif %}</dd>
+          <dt>Responsable</dt><dd>{{ responsable or '—' }}</dd></dl>
+      </section>
+    </div></div>
+  </main>
+</body>
+</html>

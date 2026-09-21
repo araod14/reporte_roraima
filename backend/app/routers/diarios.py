@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,6 +12,7 @@ from app.models.diario import Diario, VersionDiario
 from app.models.user import User
 from app.schemas.diario import CierreDiario, DiarioIn, LoteDiarios, ReabrirDiario
 from app.services.diario_service import finalizar_diario, lock_diario, upsert_diario, utc
+from app.services.esquema_diario_service import render_esquema_diario
 
 router = APIRouter(prefix="/api/diarios", tags=["diarios"])
 
@@ -42,6 +43,14 @@ def required(item):
     if item is None:
         raise HTTPException(404, "Reporte diario no encontrado")
     return item
+
+
+@router.get("/esquema", response_class=HTMLResponse)
+def esquema(db: Session = Depends(get_db)):
+    """Vista pública y actualizable del último reporte diario finalizado."""
+    version = db.scalar(select(VersionDiario).order_by(
+        VersionDiario.fecha_generacion.desc(), VersionDiario.id.desc()).limit(1))
+    return HTMLResponse(render_esquema_diario(version), headers={"Cache-Control": "no-store"})
 
 
 @router.get("")
