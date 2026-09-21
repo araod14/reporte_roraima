@@ -28,6 +28,7 @@ function estadoBadge(insp: Pick<Inspeccion, "estado" | "syncState">) {
 }
 
 export function Lista() {
+  const esquemaUrl = `${(import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "")}/api/diarios/esquema`;
   const [items, setItems] = useState<Inspeccion[]>([]);
   const [diarios, setDiarios] = useState<Diario[]>([]);
   const [filter, setFilter] = useState("todos");
@@ -113,6 +114,7 @@ export function Lista() {
           <button className="btn-primary" onClick={nueva}>Reporte semanal</button>
           <button className="btn-primary" onClick={() => navigate(`/diario/${uuid()}`)}>Reporte diario</button>
         </div>
+        <a className="btn plano-link" href={esquemaUrl}>Ver plano de la sala de control</a>
         <div className="btn-row report-filters" role="group" aria-label="Tipo de reporte">
           {[["todos", "Todos"], ["semanal", "Semanales"], ["diario", "Diarios"]].map(([value, label]) =>
             <button key={value} aria-pressed={filter === value} className={filter === value ? "btn-primary" : ""}

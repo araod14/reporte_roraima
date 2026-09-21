@@ -148,6 +148,7 @@ textarea { min-height: 70px; resize: vertical; }
 /* Reporte diario y selección de tipo */
 .report-actions { display: flex; gap: 10px; margin-bottom: 14px; }
 .report-actions button { flex: 1; }
+.plano-link { display: block; margin-bottom: 14px; text-align: center; text-decoration: none; }
 .report-filters { margin-bottom: 14px; }
 .daily-section { padding: 14px; margin-top: 12px; }
 .daily-section h2 { font-size: 16px; color: var(--brand); margin: 0 0 12px; }
