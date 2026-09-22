@@ -1,4 +1,5 @@
 """Vista pública del esquema GUS basada en una versión diaria congelada."""
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
@@ -23,6 +24,25 @@ def _state(value, allowed):
     return value if value in allowed else None
 
 
+def _as_utc(value: datetime) -> datetime:
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+
+
+def _age_label(value: datetime | None, now: datetime | None = None) -> str | None:
+    if value is None:
+        return None
+    minutes = max(0, int(((now or datetime.now(timezone.utc)) - _as_utc(value)).total_seconds() // 60))
+    if minutes < 1:
+        return "hace menos de 1 minuto"
+    if minutes < 60:
+        return f"hace {minutes} {'minuto' if minutes == 1 else 'minutos'}"
+    hours = minutes // 60
+    if hours < 24:
+        return f"hace {hours} {'hora' if hours == 1 else 'horas'}"
+    days = hours // 24
+    return f"hace {days} {'día' if days == 1 else 'días'}"
+
+
 def render_esquema_diario(version: VersionDiario | None) -> str:
     datos = version.datos if version else {}
     gus = datos.get("gus") or {}
@@ -44,13 +64,51 @@ def render_esquema_diario(version: VersionDiario | None) -> str:
         )
     ]
     temperatures = [
-        {"label": label, "value": datos.get(key)}
+        {"label": label, "value": datos.get(key),
+         "tone": ("empty" if datos.get(key) is None else
+                  "malo" if datos[key] > 35 else "observacion" if datos[key] > 25 else "ok")}
         for label, key in (("Temperatura ISH 1", "temperatura_ish1"),
                            ("Temperatura ISH 2", "temperatura_ish2"))
     ]
+    gus_items = [(group["title"], item) for group in groups for item in group["items"]]
+    counts = {
+        "observacion": sum(item["state"] == "OBSERVACION" for _, item in gus_items),
+        "malo": sum(item["state"] == "MALO" for _, item in gus_items),
+        "ucn": sum(signal["state"] == "FAIL" for signal in signals[2:]),
+        "lcn": sum(signal["state"] == "SUSPECT" for signal in signals[:2]),
+        "temperatura": sum(temp["tone"] in ("observacion", "malo") for temp in temperatures),
+    }
+    summary = [
+        {"text": f'{counts["malo"]} GUS en MALO', "tone": "malo"} if counts["malo"] else None,
+        {"text": f'{counts["observacion"]} GUS en observación', "tone": "observacion"} if counts["observacion"] else None,
+        {"text": f'{counts["ucn"]} UCN con falla', "tone": "malo"} if counts["ucn"] else None,
+        {"text": f'{counts["lcn"]} LCN sospechoso{"s" if counts["lcn"] != 1 else ""}', "tone": "observacion"} if counts["lcn"] else None,
+        {"text": f'{counts["temperatura"]} temperatura{"s" if counts["temperatura"] != 1 else ""} elevada{"s" if counts["temperatura"] != 1 else ""}',
+         "tone": "malo" if any(temp["tone"] == "malo" for temp in temperatures) else "observacion"} if counts["temperatura"] else None,
+    ]
+    summary = [entry for entry in summary if entry]
+    incidents = [
+        {"name": item["name"], "area": area, "state": "MALO" if item["state"] == "MALO" else "OBSERVACIÓN",
+         "tone": item["state"].lower()}
+        for area, item in gus_items if item["state"] in ("MALO", "OBSERVACION")
+    ]
+    incidents += [
+        {"name": signal["label"], "area": "LCN" if index < 2 else "UCN",
+         "state": "SUSPECT" if index < 2 else "FAIL", "tone": "suspect" if index < 2 else "fail"}
+        for index, signal in enumerate(signals) if signal["state"] in ("SUSPECT", "FAIL")
+    ]
+    incidents += [
+        {"name": temp["label"], "area": "Temperaturas", "state": f'{temp["value"]:g} °C',
+         "tone": temp["tone"]}
+        for temp in temperatures if temp["tone"] in ("observacion", "malo")
+    ]
+    incidents.sort(key=lambda item: item["tone"] not in ("malo", "fail"))
     return _env.get_template("esquema_diario.html.j2").render(
         css_content=_CSS, has_report=version is not None, groups=groups,
-        signals=signals, temperatures=temperatures, fecha=datos.get("fecha"),
+        signals=signals, temperatures=temperatures, summary=summary, incidents=incidents,
+        age_label=_age_label(version.fecha_generacion) if version else None,
+        stale=bool(version and datetime.now(timezone.utc) - _as_utc(version.fecha_generacion) >= timedelta(hours=24)),
+        fecha=datos.get("fecha"),
         hora=datos.get("hora"), responsable=datos.get("responsable"),
         observaciones=datos.get("observaciones"),
     )

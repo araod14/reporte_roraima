@@ -14,6 +14,13 @@
       <span class="live">Actualización automática cada minuto</span>
     </header>
     {% if not has_report %}<div class="notice" role="status">Todavía no hay reportes diarios finalizados.</div>{% endif %}
+    {% if has_report %}
+    <section class="summary" aria-label="Resumen de incidencias">
+      <strong>Incidencias del último reporte</strong>
+      {% if summary %}{% for entry in summary %}<span class="summary-chip {{ entry.tone }}">{{ entry.text }}</span>{% endfor %}
+      {% else %}<span class="summary-chip ok">Sin incidencias registradas</span>{% endif %}
+    </section>
+    {% endif %}
     <p class="scroll-hint">Desliza el plano horizontalmente para recorrer la sala.</p>
     <div class="room-scroll"><div class="room" aria-label="Plano de la sala de control visto desde arriba">
       {% for group in groups %}
@@ -38,16 +45,22 @@
       <section class="panel temperatures" aria-labelledby="temp-title">
         <h2 id="temp-title">Temperaturas</h2>
         {% for temp in temperatures %}
-        {% set tone = 'empty' if temp.value is none else 'malo' if temp.value > 35 else 'observacion' if temp.value > 25 else 'ok' %}
-        <div class="temperature"><span>{{ temp.label }}</span><strong class="pill {{ tone }}">{{ '%g' | format(temp.value) ~ ' °C' if temp.value is not none else 'Sin dato' }}</strong></div>
+        <div class="temperature"><span>{{ temp.label }}</span><strong class="pill {{ temp.tone }}">{{ '%g' | format(temp.value) ~ ' °C' if temp.value is not none else 'Sin dato' }}</strong></div>
         {% endfor %}
       </section>
       <section class="panel observations" aria-labelledby="obs-title"><h2 id="obs-title">Observaciones</h2><p>{{ observaciones | trim if observaciones and observaciones | trim else 'Sin observaciones' if has_report else 'Sin reporte disponible' }}</p></section>
       <section class="panel details" aria-labelledby="details-title"><h2 id="details-title">Última actualización</h2>
         <dl><dt>Fecha del reporte</dt><dd>{{ fecha or '—' }}{% if hora %} · {{ hora }} (Venezuela){% endif %}</dd>
+          {% if age_label %}<dd class="freshness {{ 'stale' if stale else '' }}">Actualizado {{ age_label }}</dd>{% endif %}
           <dt>Responsable</dt><dd>{{ responsable or '—' }}</dd></dl>
       </section>
     </div></div>
+    {% if has_report %}<section class="incident-list" aria-labelledby="incident-list-title">
+      <h2 id="incident-list-title">Equipos que requieren atención</h2>
+      {% if incidents %}<ul>{% for item in incidents %}
+        <li><div><strong>{{ item.name }}</strong><small>{{ item.area }}</small></div><span class="pill {{ item.tone }}">{{ item.state }}</span></li>
+      {% endfor %}</ul>{% else %}<p>Sin incidencias registradas.</p>{% endif %}
+    </section>{% endif %}
   </main>
 </body>
 </html>

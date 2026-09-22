@@ -23,6 +23,7 @@ from app.db.session import get_db
 from app.models.diario import Diario, VersionDiario
 from app.routers.diarios import router
 from app.services.diario_service import gus_catalogo
+from app.services.esquema_diario_service import _age_label
 
 
 class DiariosTests(unittest.TestCase):
@@ -218,6 +219,11 @@ class DiariosTests(unittest.TestCase):
         self.assertIn("José Pérez", page.text)
         self.assertIn("2026-09-12 · 09:30 (Venezuela)", page.text)
         self.assertIn("Revisión de señal. °C", page.text)
+        self.assertIn("Incidencias del último reporte", page.text)
+        self.assertIn("GUS en observación", page.text)
+        self.assertIn("1 UCN con falla", page.text)
+        self.assertIn("Equipos que requieren atención", page.text)
+        self.assertIn("Actualizado hace", page.text)
         self.assertIn('class="gus-tile ok"', page.text)
         self.assertIn('class="gus-tile malo"', page.text)
         self.assertIn('class="gus-tile observacion"', page.text)
@@ -238,6 +244,13 @@ class DiariosTests(unittest.TestCase):
         self.assertNotIn("<script>alert(1)</script>", latest.text)
         self.assertIn("Nueva versión", latest.text)
         self.assertNotIn("Revisión de señal. °C", latest.text)
+
+    def test_esquema_age_labels(self):
+        now = datetime(2026, 9, 22, 12, tzinfo=timezone.utc)
+        self.assertEqual(_age_label(now - timedelta(seconds=30), now), "hace menos de 1 minuto")
+        self.assertEqual(_age_label(now - timedelta(minutes=1), now), "hace 1 minuto")
+        self.assertEqual(_age_label(now - timedelta(hours=2), now), "hace 2 horas")
+        self.assertEqual(_age_label(now - timedelta(days=1), now), "hace 1 día")
 
     def test_long_observations_expand_without_changing_width(self):
         self.save()
