@@ -1,5 +1,5 @@
 import { db, getMeta } from "./db";
-import { ApiError } from "./api";
+import { ApiError, expireSessionIf401 } from "./api";
 import { CATALOGO_FALLBACK } from "./catalogo";
 import type { Estado, SyncState } from "./types";
 
@@ -77,6 +77,7 @@ async function request(path = "", method = "GET", body?: unknown): Promise<Respo
     throw new ApiError(0, "No se pudo conectar con el servidor. El borrador permanece guardado en el teléfono.");
   }
   if (!res.ok) {
+    await expireSessionIf401(res.status);
     const data = await res.json().catch(() => ({}));
     const message = typeof data.detail === "string" ? data.detail : "Datos inválidos. Revisa los campos del reporte.";
     throw new ApiError(res.status, message);

@@ -1,4 +1,4 @@
-import { getMeta } from "./db";
+import { delMeta, getMeta } from "./db";
 
 // En dev, Vite hace proxy de /api al backend. En prod, mismo dominio vía Caddy.
 const BASE = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -16,8 +16,17 @@ export class ApiError extends Error {
   }
 }
 
+// Token vencido o inválido: se borra (los borradores siguen en IndexedDB) y se
+// vuelve al login; si no, la app queda "logueada" recibiendo 401 indefinidamente.
+export async function expireSessionIf401(status: number): Promise<void> {
+  if (status !== 401 || !(await getMeta("token"))) return;
+  await delMeta("token");
+  window.location.hash = "#/login";
+}
+
 async function handle(res: Response): Promise<any> {
   if (!res.ok) {
+    await expireSessionIf401(res.status);
     let detail = res.statusText;
     try {
       const body = await res.json();
@@ -91,6 +100,7 @@ export async function fetchSlides(
     headers: await authHeaders(),
   });
   if (!res.ok) {
+    await expireSessionIf401(res.status);
     let detail = res.statusText;
     try {
       detail = (await res.json()).detail ?? detail;
