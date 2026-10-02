@@ -42,11 +42,16 @@ async function handle(res: Response): Promise<any> {
 
 export async function login(username: string, password: string): Promise<string> {
   const form = new URLSearchParams({ username, password });
-  const res = await fetch(`${BASE}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: form,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: form,
+    });
+  } catch {
+    throw new ApiError(0, "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.");
+  }
   const data = await handle(res);
   return data.access_token;
 }
