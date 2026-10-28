@@ -13,7 +13,7 @@ export default defineConfig({
         name: "Verificación ISH y SDC",
         short_name: "ISH/SDC",
         description: "Verificación Periódica de ISH y SDC — PDVSA",
-        theme_color: "#0b5cad",
+        theme_color: "#12304a",
         background_color: "#ffffff",
         display: "standalone",
         start_url: "/",

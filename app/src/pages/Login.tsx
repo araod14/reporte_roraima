@@ -41,6 +41,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
           <input
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
             autoCapitalize="none"
             autoCorrect="off"
             required
@@ -50,12 +51,13 @@ export function Login({ onLogin }: { onLogin: () => void }) {
           <span>Contraseña</span>
           <input
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </label>
-        {error && <div className="error">{error}</div>}
+        {error && <div className="error" role="alert">{error}</div>}
         <button className="btn-primary btn-block" disabled={loading}>
           {loading ? "Entrando…" : "Entrar"}
         </button>

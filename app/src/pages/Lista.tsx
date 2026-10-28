@@ -120,6 +120,7 @@ export function Lista() {
           <span aria-hidden="true">→</span>
         </Link>
         <a className="btn plano-link" href={esquemaUrl}>Ver plano de la sala de control</a>
+        <h2 className="page-heading">Historial de reportes</h2>
         <div className="btn-row report-filters" role="group" aria-label="Tipo de reporte">
           {[["todos", "Todos"], ["semanal", "Semanales"], ["diario", "Diarios"]].map(([value, label]) =>
             <button key={value} aria-pressed={filter === value} className={filter === value ? "btn-primary" : ""}

@@ -109,6 +109,7 @@ export function Biblioteca() {
     <header className="library-header"><button onClick={() => setMobileMenu(!mobileMenu)} className="library-menu" aria-label="Conversaciones">☰</button>
       <div><h1>Biblioteca Automatización Roraima</h1><small>Manuales Honeywell TPS · respuestas en español</small></div>
       <Link to="/" className="library-back">Reportes</Link></header>
+    {mobileMenu && <button className="library-menu-backdrop" aria-label="Cerrar conversaciones" onClick={() => setMobileMenu(false)} />}
     <div className="library-body">
       <aside className={`library-sidebar ${mobileMenu ? "open" : ""}`}>
         <button className="btn-primary btn-block" onClick={() => void create()}>+ Nueva conversación</button>
