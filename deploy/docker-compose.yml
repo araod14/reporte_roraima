@@ -27,8 +27,38 @@ services:
       BASE_URL: ${BASE_URL:?define BASE_URL en .env}
       REPORTS_DIR: /var/reports
       SEED_PASSWORD: ${SEED_PASSWORD:-roraima2026}
+      LIBRARY_PDF_DIR: /var/tps-pdfs
+      LIBRARY_GEMINI_KEY_FILE: /run/library/gemini.key
+      LIBRARY_GEMINI_FREE_TIER_CONFIRMED: ${LIBRARY_GEMINI_FREE_TIER_CONFIRMED:-false}
+      HF_HOME: /var/library-models
     volumes:
       - reports:/var/reports
+      - ../info_tps:/var/tps-pdfs:ro
+      - ../library_secrets:/run/library:ro
+      - library_models:/var/library-models
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 15
+
+  library_worker:
+    build:
+      context: ../backend
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-roraima}:${POSTGRES_PASSWORD:-roraima}@db:5432/${POSTGRES_DB:-roraima}
+      JWT_SECRET: ${JWT_SECRET:?define JWT_SECRET en .env}
+      LIBRARY_PDF_DIR: /var/tps-pdfs
+      HF_HOME: /var/library-models
+    volumes:
+      - ../info_tps:/var/tps-pdfs:ro
+      - library_models:/var/library-models
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["while true; do python -m app.scripts.ingest_library; sleep 3600; done"]
 
   caddy:
     image: caddy:2
@@ -52,3 +82,4 @@ volumes:
   reports:
   caddy_data:
   caddy_config:
+  library_models:

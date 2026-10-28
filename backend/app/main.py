@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import settings
-from app.routers import diarios, auth, catalogo, inspecciones, reportes, slides, sync, verificar
+from app.routers import diarios, auth, catalogo, inspecciones, reportes, slides, sync, verificar, library
 
 app = FastAPI(
     title="Verificación Periódica ISH y SDC — API",
@@ -31,6 +31,7 @@ app.include_router(slides.router)
 app.include_router(sync.router)
 app.include_router(reportes.router)
 app.include_router(verificar.router)
+app.include_router(library.router)
 
 
 @app.get("/api/health", tags=["health"])

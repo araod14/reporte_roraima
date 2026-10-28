@@ -18,12 +18,8 @@ else:
     raise SystemExit("No se pudo conectar a PostgreSQL")
 PY
 
-echo "==> Aplicando migraciones (alembic upgrade head)..."
-# Si aún no hay migraciones, seed.py hace create_all como respaldo.
-alembic upgrade head || echo "  (sin migraciones aplicables; se usará create_all)"
-
-echo "==> Ejecutando seed (idempotente)..."
-python -m app.seed
+echo "==> Inicializando o migrando base de datos..."
+python -m app.bootstrap
 
 echo "==> Iniciando servidor..."
 exec "$@"

@@ -5,6 +5,7 @@ import { Login } from "./pages/Login";
 import { Lista } from "./pages/Lista";
 import { Diario } from "./pages/Diario";
 import { Formulario } from "./pages/Formulario";
+import { Biblioteca } from "./pages/Biblioteca";
 
 export function App() {
   const [ready, setReady] = useState(false);
@@ -24,6 +25,7 @@ export function App() {
     <Routes>
       <Route path="/login" element={<Login onLogin={() => setAuthed(true)} />} />
       <Route path="/" element={authed ? <Lista /> : <Navigate to="/login" replace />} />
+      <Route path="/biblioteca" element={authed ? <Biblioteca /> : <Navigate to="/login" replace />} />
       <Route
         path="/insp/:id"
         element={authed ? <Formulario /> : <Navigate to="/login" replace />}

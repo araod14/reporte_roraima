@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:check": "tsc -b && vite build --outDir .build-check",
     "preview": "vite preview"
   },
   "dependencies": {
     "dexie": "^4.0.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.3",
     "react-router-dom": "^6.28.0",
+    "remark-gfm": "^4.0.0",
     "uuid": "^11.0.3"
   },
   "devDependencies": {

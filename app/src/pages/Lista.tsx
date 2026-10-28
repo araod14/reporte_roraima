@@ -114,6 +114,11 @@ export function Lista() {
           <button className="btn-primary" onClick={nueva}>Reporte semanal</button>
           <button className="btn-primary" onClick={() => navigate(`/diario/${uuid()}`)}>Reporte diario</button>
         </div>
+        <Link to="/biblioteca" className="list-item library-entry">
+          <div><div className="fecha">Biblioteca Automatización Roraima</div>
+            <div className="who">Consulta privada de manuales Honeywell TPS</div></div>
+          <span aria-hidden="true">→</span>
+        </Link>
         <a className="btn plano-link" href={esquemaUrl}>Ver plano de la sala de control</a>
         <div className="btn-row report-filters" role="group" aria-label="Tipo de reporte">
           {[["todos", "Todos"], ["semanal", "Semanales"], ["diario", "Diarios"]].map(([value, label]) =>

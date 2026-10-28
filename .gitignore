@@ -12,6 +12,7 @@ backend/_reports/
 node_modules/
 app/dist/
 app/dev-dist/
+app/.build-check/
 app/tsconfig.tsbuildinfo
 .playwright-mcp/
 linkedin/
@@ -20,6 +21,9 @@ docs/
 # Entornos y secretos
 .env
 deploy/.env
+library_secrets/
+backups/
+info_tps/
 
 # Editor
 .DS_Store

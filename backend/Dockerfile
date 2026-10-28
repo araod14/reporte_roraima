@@ -21,6 +21,7 @@ RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https:
       fonts-dejavu-core \
       fonts-liberation \
       curl \
+      tesseract-ocr tesseract-ocr-eng tesseract-ocr-spa \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /code

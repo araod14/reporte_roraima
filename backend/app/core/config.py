@@ -26,6 +26,12 @@ class Settings(BaseSettings):
     # Contraseña inicial de los usuarios creados por el seed.
     SEED_PASSWORD: str = "roraima2026"
 
+    # Biblioteca TPS: sin credenciales ni acceso por defecto.
+    LIBRARY_PDF_DIR: str = "/var/tps-pdfs"
+    LIBRARY_GEMINI_KEY_FILE: str = ""
+    LIBRARY_GEMINI_FREE_TIER_CONFIRMED: bool = False
+    LIBRARY_EMBEDDING_MODEL: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+
 
 @lru_cache
 def get_settings() -> Settings:
