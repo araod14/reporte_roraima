@@ -2,6 +2,8 @@
 
 FastAPI + PostgreSQL + SQLAlchemy + Alembic + WeasyPrint.
 
+La biblioteca privada TPS tiene [guía de despliegue, respaldo y reversión](LIBRARY.md).
+
 ## Endpoints principales
 
 - `POST /api/auth/login` — login (usuarios precreados). Devuelve JWT.
@@ -41,13 +43,14 @@ export BASE_URL="http://localhost:8000"
 export REPORTS_DIR="./_reports"
 export JWT_SECRET="dev-secret"
 
-python -m app.seed                       # crea tablas (create_all) + catálogo + usuarios
+python -m app.bootstrap                  # crea o migra tablas, catálogo y usuarios
 uvicorn app.main:app --reload --port 8000
 ```
 
 ## Migraciones (Alembic)
 
-El seed usa `create_all` para el arranque inicial. Para cambios de esquema posteriores:
+`app.bootstrap` usa `create_all` y `alembic stamp head` para una base vacía;
+para una base existente aplica `alembic upgrade head`. Para cambios posteriores:
 
 ```bash
 alembic revision --autogenerate -m "descripcion del cambio"

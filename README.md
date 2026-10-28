@@ -14,6 +14,12 @@ listo para compartir por WhatsApp.
 | `app/`      | App de campo (PWA instalable, offline-first) | React + Vite + TypeScript, Dexie (IndexedDB) |
 | `deploy/`   | Orquestación para el VPS | Docker Compose + Caddy (HTTPS automático) |
 
+La **Biblioteca Automatización Roraima** añade consultas privadas sobre los 320 manuales
+Honeywell TPS. Está publicada en [la aplicación](https://reporteroraima.automateca.site/#/biblioteca)
+y requiere conexión para consultar. Usa Gemini 3.5 Flash-Lite con una clave de un proyecto
+Free Tier sin facturación vinculada. Su instalación, ingesta, respaldo y reversión están
+documentados en [`backend/LIBRARY.md`](backend/LIBRARY.md).
+
 > **¿Por qué PWA y no Flutter?** Un solo ecosistema de front, se instala en el teléfono
 > como una app (ícono, pantalla completa), funciona offline, comparte el PDF por WhatsApp
 > con la Web Share API, y se **actualiza al instante** sin recompilar ni redistribuir
@@ -68,7 +74,7 @@ docker compose up -d --build
 
 Al arrancar, el contenedor `api`:
 1. espera a PostgreSQL,
-2. aplica migraciones (`alembic upgrade head`),
+2. inicializa una base nueva o aplica migraciones en una existente,
 3. corre el **seed idempotente** (catálogo fijo de 95 elementos + 6 usuarios),
 4. inicia el servidor.
 
