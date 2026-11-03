@@ -24,6 +24,7 @@ deploy/.env
 library_secrets/
 backups/
 info_tps/
+output/
 
 # Editor
 .DS_Store
