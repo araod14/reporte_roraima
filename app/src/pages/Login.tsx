@@ -1,3 +1,4 @@
+import { ThemeSelector } from "../theme";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../api";
@@ -31,6 +32,7 @@ export function Login({ onLogin }: { onLogin: () => void }) {
 
   return (
     <div className="login">
+      <ThemeSelector />
       <div className="logo">
         <div className="t">Verificación ISH y SDC</div>
         <div className="s">PDVSA — Inspección de campo</div>

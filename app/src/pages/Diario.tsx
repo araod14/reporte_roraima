@@ -1,3 +1,4 @@
+import { ThemeSelector } from "../theme";
 import { useEffect, useRef, useState } from "react";
 import { liveQuery } from "dexie";
 import { useNavigate, useParams } from "react-router-dom";
@@ -163,7 +164,7 @@ export function Diario() {
   }
 
   return <div className="app daily">
-    <div className="topbar"><div><h1>Reporte diario</h1><div className="sub">{readOnly ? `Finalizado · v${item.version}` : "Borrador · guardado automático"}</div></div>
+    <div className="topbar"><ThemeSelector /><div><h1>Reporte diario</h1><div className="sub">{readOnly ? `Finalizado · v${item.version}` : "Borrador · guardado automático"}</div></div>
       <button disabled={busy} onClick={() => navigate("/")}>Volver</button></div>
     <div className="content">
       {message && <div className="daily-message" role="status">{message}</div>}

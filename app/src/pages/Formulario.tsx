@@ -1,3 +1,4 @@
+import { ThemeSelector } from "../theme";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { v4 as uuid } from "uuid";
@@ -205,7 +206,7 @@ export function Formulario() {
 
   return (
     <div className="app">
-      <div className="topbar">
+      <div className="topbar"><ThemeSelector />
         <div>
           <h1>{readOnly ? "Reporte" : "Inspección"}</h1>
           <div className="sub">{insp.fecha}</div>

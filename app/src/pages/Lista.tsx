@@ -1,3 +1,4 @@
+import { ThemeSelector } from "../theme";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { v4 as uuid } from "uuid";
@@ -90,7 +91,7 @@ export function Lista() {
 
   return (
     <div className="app">
-      <div className="topbar">
+      <div className="topbar"><ThemeSelector />
         <div>
           <h1>Reportes</h1>
           <div className="sub">{username}</div>

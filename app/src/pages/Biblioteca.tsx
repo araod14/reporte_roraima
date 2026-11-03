@@ -1,3 +1,4 @@
+import { ThemeSelector } from "../theme";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
@@ -108,7 +109,7 @@ export function Biblioteca() {
   return <div className="library">
     <header className="library-header"><button onClick={() => setMobileMenu(!mobileMenu)} className="library-menu" aria-label="Conversaciones">☰</button>
       <div><h1>Biblioteca Automatización Roraima</h1><small>Manuales Honeywell TPS · respuestas en español</small></div>
-      <Link to="/" className="library-back">Reportes</Link></header>
+      <ThemeSelector /><Link to="/" className="library-back">Reportes</Link></header>
     {mobileMenu && <button className="library-menu-backdrop" aria-label="Cerrar conversaciones" onClick={() => setMobileMenu(false)} />}
     <div className="library-body">
       <aside className={`library-sidebar ${mobileMenu ? "open" : ""}`}>
